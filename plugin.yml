@@ -1,0 +1,48 @@
+name: PreVisitedTeleport
+version: 2.0.0
+description: A teleportation plugin that requires players to visit a location before they can teleport there.
+author: Draeke_Forther
+main: com.PromethiaRP.Draeke.PreVisit.PreVisit
+
+commands:
+ ft:
+  description: Teleport to a previously visited location.
+  usage: /<command> <WarpName>
+ warps:
+  description: Displays a list of available locations to teleport to.
+  usage: /<command> [WarpName]
+ svwarp:
+  description: Creates a warp for players to teleport to.
+  usage: /<command> [Size] <WarpName>
+ dvwarp:
+  description: Deletes a warp.
+  usage: /<command> <WarpName>
+ energy:
+  description: Displays the energy that a Player currently has.
+  usage: /<command>
+
+permissions:
+ previsit.*:
+  description: Gives access to all warps and all PreVisit commands.
+  children:
+   previsit.svwarp: true
+   previsit.dvwarp: true
+   previsit.useenergy: false
+   previsit.combatwait: false
+   previsit.allwarps: true
+  default: op
+ previsit.svwarp:
+  description: Allows you to create a warp.
+  default: op
+ previsit.dvwarp:
+  description: Allows you to delete a warp.
+  default: op
+ previsit.useenergy:
+  description: Whether or not a Player must have energy to teleport.
+  default: true
+ previsit.combatwait:
+  description: Whether or not a Player must exit combat to teleport.
+  default: true
+ previsit.allwarps:
+  description: Whether or not a player can visit any warp.
+  default: false
