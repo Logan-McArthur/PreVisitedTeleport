@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -143,31 +144,7 @@ public class ServerPL implements Listener {
 		return energies.get(player).intValue();
 	}
 	
-	public Zone fromString(String ref){
-		try{
-			String[] info = ref.split(Zone.SEPARATOR);
-			String nam = info[0];
-			Location loc;
-			loc = new Location(plugin.getServer().getWorld(info[2]), Double.parseDouble(info[3]), Double.parseDouble(info[4]), Double.parseDouble(info[5]));
-			loc.setYaw(Float.parseFloat(info[6]));
-			
-			if(info[1].equals("open")){
-				return new Zone(loc,nam);
-			}else{
-				Set<String> players = new HashSet<String>();
-				for(int i = 7; i<info.length;i++){
-					players.add(info[i]);
-				}
-				Zone zon = new Zone(loc,Integer.parseInt(info[1]),nam);
-				zon.addPlayers(players);
-				return zon;
-			}
-			
-		}catch(Error e){
-			e.printStackTrace();
-		}
-		return null;
-	}
+	
 
 	public void requestEnergy(Player player){
 		player.sendMessage("Your current energy level is: " + getEnergy(player.getName()));
@@ -210,6 +187,13 @@ public class ServerPL implements Listener {
 		}
 		player.sendMessage(warps);
 	}
+	
+	/**
+	 * Change the method to store the UUID of the player
+	 * Put a symbol at the front of each line?
+	 * Storing the UUID
+	 * recalling the UUID
+	 */
 	
 	public void store(){
 		updateEnergies();
@@ -258,6 +242,34 @@ public class ServerPL implements Listener {
 		}catch(IOException e){
 			e.printStackTrace();
 		}
+	}
+	
+	public Zone fromString(String ref){
+		try{
+			String[] info = ref.split(Zone.SEPARATOR);
+			//List<String> info = new ArrayList<String>();
+			
+			String nam = info[0];
+			Location loc;
+			loc = new Location(plugin.getServer().getWorld(info[2]), Double.parseDouble(info[3]), Double.parseDouble(info[4]), Double.parseDouble(info[5]));
+			loc.setYaw(Float.parseFloat(info[6]));
+			
+			if(info[1].equals("open")){
+				return new Zone(loc,nam);
+			}else{
+				Set<String> players = new HashSet<String>();
+				for(int i = 7; i<info.length;i++){
+					players.add(info[i]);
+				}
+				Zone zon = new Zone(loc,Integer.parseInt(info[1]),nam);
+				zon.addPlayers(players);
+				return zon;
+			}
+			
+		}catch(Error e){
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public void giveEnergyToAll(int amount){
