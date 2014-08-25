@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -31,10 +32,11 @@ public class ServerPL implements Listener {
 	public PreVisit plugin;
 	private Set<Zone> zones = new HashSet<Zone>();
 	private static Map<String,Integer> energies = new HashMap<String,Integer>();
+	private static Map<UUID, Integer> energiesUUID = new HashMap<UUID, Integer>();
 	private static ArrayList<String> coolDown = new ArrayList<String>();
 	private Date lastDate;
 	private final File DATAFILE;
-	
+	public static final boolean COMBAT_WAIT = false;
 	public ServerPL(PreVisit pv, File dataFile){
 		plugin = pv;
 		lastDate = new Date();
@@ -42,7 +44,7 @@ public class ServerPL implements Listener {
 	}
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent e){
-		checkEnergy(e.getPlayer().getName());
+		checkEnergy(e.getPlayer());
 		for(Zone zon: zones){
 			if(zon.withinRange(e.getPlayer())){
 				if(zon.addPlayer(e.getPlayer())){
@@ -54,6 +56,9 @@ public class ServerPL implements Listener {
 	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerDamagePlayer(EntityDamageByEntityEvent e){
+		if ( ! COMBAT_WAIT) {
+			return;
+		}
 		if(e.isCancelled()){
 			return;
 		}
@@ -81,7 +86,7 @@ public class ServerPL implements Listener {
 	}
 	
 	public boolean requestTeleport(Player player, String warp){
-		checkEnergy(player.getName());
+		checkEnergy(player);
 		store();
 //		if(!canTeleport(player)){
 //			player.sendMessage(ChatColor.RED + "You can not fast travel while in combat.");
@@ -134,25 +139,32 @@ public class ServerPL implements Listener {
 		return true;
 	}
 	
-	public static void checkEnergy(String player){
-		if(energies.get(player)==null){
-			energies.put(player, new Integer(0));
+	public static void checkEnergy(Player player){
+		if (energiesUUID.get(player.getUniqueId()) == null) {
+			if (energies.get(player.getName()) != null) {
+				energiesUUID.put(player.getUniqueId(), energies.get(player.getName()));
+				energies.remove(player.getName());
+			}
 		}
+		
 	}
-	public static int getEnergy(String player){
+	public static int getEnergy(Player player){
 		checkEnergy(player);
-		return energies.get(player).intValue();
+		return energiesUUID.get(player).intValue();
 	}
 	
 	
 
 	public void requestEnergy(Player player){
-		player.sendMessage("Your current energy level is: " + getEnergy(player.getName()));
+		player.sendMessage("Your current energy level is: " + getEnergy(player));
 	}
 	public void updateEnergies(){
 		long value = energyValue();
 		for(String name: energies.keySet()){
 			energies.put(name,new Integer((int)(energies.get(name).intValue()+(value * (plugin.getServer().getPlayer(name)!=null? .125:1)))));
+		}
+		for(UUID uid: energiesUUID.keySet()) {
+			energiesUUID.put(uid,new Integer((int)(energiesUUID.get(uid).intValue()+(value * (plugin.getServer().getPlayer(uid)!=null? .125:1)))));
 		}
 		
 	}
@@ -163,7 +175,7 @@ public class ServerPL implements Listener {
 	}
 	
 	public boolean isAccessible(Player player, Zone zone){
-		return ((zone.hasVisited(player.getName()))&&((getEnergy(player.getName())>=zone.getRequiredEnergy(player))//player.getWorld().getName(),player.getLocation().getX(),player.getLocation().getY(),player.getLocation().getZ()))
+		return ((zone.hasVisited(player))&&((getEnergy(player)>=zone.getRequiredEnergy(player))
 				||!player.hasPermission("previsit.useenergy")))||zone.isPublic()||(player.hasPermission("previsit.allwarps"));
 	}
 	
@@ -171,7 +183,7 @@ public class ServerPL implements Listener {
 	public void getWarps(Player player){
 		String warps = "";
 		for(Zone zon: zones){
-			if(zon.hasVisited(player.getName())||zon.isPublic()||player.hasPermission("previsit.allwarps")){
+			if(zon.hasVisited(player)||zon.isPublic()||player.hasPermission("previsit.allwarps")){
 				warps = warps + (isAccessible(player,zon) ? ChatColor.GOLD:ChatColor.RED)+zon.getName()+ChatColor.WHITE+", ";
 			}
 		}
@@ -206,6 +218,10 @@ public class ServerPL implements Listener {
 			for(String name: energies.keySet()){
 				pw.println(name+Zone.SEPARATOR+energies.get(name).intValue());
 			}
+			pw.println("========UniqueEnergies========");
+			for(UUID uid: energiesUUID.keySet()) {
+				pw.println(uid.toString() + Zone.UUID_SEPARATOR+energiesUUID.get(uid).intValue());
+			}
 			pw.println("========Warps========");
 			for(Zone zone: zones){
 				pw.println(zone.toString());
@@ -229,10 +245,19 @@ public class ServerPL implements Listener {
 				if(str.equals("========Energies========")){
 					continue;
 				}
-				if(str.equals("========Warps========")){
+				if(str.equals("========UniqueEnergies========")){
 					break;
 				}
 				energies.put(str.split(Zone.SEPARATOR)[0], new Integer(Integer.parseInt(str.split(Zone.SEPARATOR)[1])));
+			}while(fileScanner.hasNextLine()){
+				str = fileScanner.nextLine();
+				if(str.equals("========UniqueEnergies========")){
+					continue;
+				}
+				if(str.equals("========Warps========")){
+					break;
+				}
+				energiesUUID.put(UUID.fromString(str.split(Zone.UUID_SEPARATOR)[0]), new Integer(Integer.parseInt(str.split(Zone.UUID_SEPARATOR)[1])));
 			}
 			while(fileScanner.hasNextLine()){
 				zones.add(fromString(fileScanner.nextLine()));
@@ -246,7 +271,8 @@ public class ServerPL implements Listener {
 	
 	public Zone fromString(String ref){
 		try{
-			String[] info = ref.split(Zone.SEPARATOR);
+			String[] prelim = ref.split(Zone.UUID_SEPARATOR);
+			String[] info = prelim[0].split(Zone.SEPARATOR);
 			//List<String> info = new ArrayList<String>();
 			
 			String nam = info[0];
@@ -263,6 +289,12 @@ public class ServerPL implements Listener {
 				}
 				Zone zon = new Zone(loc,Integer.parseInt(info[1]),nam);
 				zon.addPlayers(players);
+				
+				Set<UUID> uids = new HashSet<UUID>();
+				for (int i = 1; i < prelim.length;i++) {
+					uids.add(UUID.fromString(prelim[i]));
+				}
+				zon.addPlayerUUIDs(uids);
 				return zon;
 			}
 			

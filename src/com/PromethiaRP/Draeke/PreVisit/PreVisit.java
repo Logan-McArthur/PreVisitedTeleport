@@ -20,6 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class PreVisit extends JavaPlugin {
 
+	
 	private final Logger logger = Logger.getLogger("Minecraft");
 	private ServerPL serverlistener;
 	
