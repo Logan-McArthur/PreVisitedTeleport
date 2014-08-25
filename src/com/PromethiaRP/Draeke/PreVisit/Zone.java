@@ -66,7 +66,7 @@ public class Zone {
 	public Location getLocation(){
 		return Position;
 	}
-	
+	//
 	public boolean addPlayer(Player player){
 		if (Players.contains(player.getName())) {
 			Players.remove(player);
