@@ -4,8 +4,8 @@
 *.pydevproject
 .metadata
 .gradle
-bin/
-tmp/
+/bin/
+/tmp/
 *.tmp
 *.bak
 *.swp
@@ -52,7 +52,7 @@ $RECYCLE.BIN/
 
 
 ### Java ###
-#*.class
+*.class
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
