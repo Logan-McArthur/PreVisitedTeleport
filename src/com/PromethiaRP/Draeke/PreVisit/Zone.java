@@ -23,7 +23,7 @@ public class Zone {
 	private String name = "";
 	private boolean isPublic = false;
 	public static final String SEPARATOR = "#";
-	public static final String UUID_SEPARATOR = "$";
+	public static final String UUID_SEPARATOR = "@";
 	public Zone(Location loc, int size, String name){
 
 		Position = loc;

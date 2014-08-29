@@ -36,6 +36,9 @@ public class ServerPL implements Listener {
 	private Date lastDate;
 	private final File DATAFILE;
 	public static final boolean COMBAT_WAIT = false;
+	public static final String ENERGY_HEADER = 		"========Energies========";
+	public static final String ENERGY_UUID_HEADER = "========UniqueEnergies========";
+	public static final String WARP_HEADER = 		"========Warps========";
 	public ServerPL(PreVisit pv, File dataFile){
 		plugin = pv;
 		lastDate = new Date();
@@ -139,17 +142,25 @@ public class ServerPL implements Listener {
 	}
 	
 	public static void checkEnergy(Player player){
-		if (energiesUUID.get(player.getUniqueId()) == null) {
-			if (energies.get(player.getName()) != null) {
-				energiesUUID.put(player.getUniqueId(), energies.get(player.getName()));
-				energies.remove(player.getName());
+		if (energies.containsKey(player.getName())) {
+			Integer intgr = energies.get(player.getName());
+			if (intgr == null) {
+				intgr = new Integer(0);
 			}
+			energiesUUID.put(player.getUniqueId(), intgr);
+			energies.remove(player.getName());
 		}
 		
+		if (energiesUUID.get(player.getUniqueId()) == null) {
+			energiesUUID.put(player.getUniqueId(), new Integer(0));
+		}
 	}
 	public static int getEnergy(Player player){
 		checkEnergy(player);
-		return energiesUUID.get(player).intValue();
+		if (energiesUUID.get(player.getUniqueId()) == null) {
+			System.out.println("Error Error, the result from get(player) is null!");
+		}
+		return energiesUUID.get(player.getUniqueId()).intValue();
 	}
 	
 	
@@ -157,11 +168,15 @@ public class ServerPL implements Listener {
 	public void requestEnergy(Player player){
 		player.sendMessage("Your current energy level is: " + getEnergy(player));
 	}
+
+	/**
+	 * If the player has not been on to have their tracker updated, they do not get more energy
+	 */
 	public void updateEnergies(){
 		long value = energyValue();
-		for(String name: energies.keySet()){
-			energies.put(name,new Integer((int)(energies.get(name).intValue()+(value * (plugin.getServer().getPlayer(name)!=null? .125:1)))));
-		}
+//		for(String name: energies.keySet()){
+//			energies.put(name,new Integer((int)(energies.get(name).intValue()+(value * (plugin.getServer().getPlayer(name)!=null? .125:1)))));
+//		}
 		for(UUID uid: energiesUUID.keySet()) {
 			energiesUUID.put(uid,new Integer((int)(energiesUUID.get(uid).intValue()+(value * (plugin.getServer().getPlayer(uid)!=null? .125:1)))));
 		}
@@ -213,15 +228,15 @@ public class ServerPL implements Listener {
 		try{
 			fw = new FileWriter(DATAFILE);
 			pw = new PrintWriter(fw,true);
-			pw.println("========Energies========");
+			pw.println(ENERGY_HEADER);
 			for(String name: energies.keySet()){
 				pw.println(name+Zone.SEPARATOR+energies.get(name).intValue());
 			}
-			pw.println("========UniqueEnergies========");
+			pw.println(ENERGY_UUID_HEADER);
 			for(UUID uid: energiesUUID.keySet()) {
 				pw.println(uid.toString() + Zone.UUID_SEPARATOR+energiesUUID.get(uid).intValue());
 			}
-			pw.println("========Warps========");
+			pw.println(WARP_HEADER);
 			for(Zone zone: zones){
 				pw.println(zone.toString());
 			}
@@ -241,22 +256,27 @@ public class ServerPL implements Listener {
 			String str;
 			while(fileScanner.hasNextLine()){
 				str = fileScanner.nextLine();
-				if(str.equals("========Energies========")){
+				if(str.equals(ENERGY_HEADER)){
 					continue;
 				}
-				if(str.equals("========UniqueEnergies========")){
+				if(str.equals(ENERGY_UUID_HEADER)){
 					break;
 				}
 				energies.put(str.split(Zone.SEPARATOR)[0], new Integer(Integer.parseInt(str.split(Zone.SEPARATOR)[1])));
 			}while(fileScanner.hasNextLine()){
 				str = fileScanner.nextLine();
-				if(str.equals("========UniqueEnergies========")){
+				if(str.equals(ENERGY_UUID_HEADER)){
 					continue;
 				}
-				if(str.equals("========Warps========")){
+				if(str.equals(WARP_HEADER)){
 					break;
 				}
-				energiesUUID.put(UUID.fromString(str.split(Zone.UUID_SEPARATOR)[0]), new Integer(Integer.parseInt(str.split(Zone.UUID_SEPARATOR)[1])));
+				System.out.println(str);
+				String[] info = str.split(Zone.UUID_SEPARATOR);
+				System.out.println(info[0]);
+				System.out.println(info[1]);
+				energiesUUID.put(UUID.fromString(info[0]), 
+						new Integer(Integer.parseInt(info[1])));
 			}
 			while(fileScanner.hasNextLine()){
 				zones.add(fromString(fileScanner.nextLine()));
