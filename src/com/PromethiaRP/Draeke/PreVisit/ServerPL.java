@@ -89,7 +89,6 @@ public class ServerPL implements Listener {
 	
 	public boolean requestTeleport(Player player, String warp){
 		checkEnergy(player);
-		store();
 //		if(!canTeleport(player)){
 //			player.sendMessage(ChatColor.RED + "You can not fast travel while in combat.");
 //			return false;
@@ -97,8 +96,10 @@ public class ServerPL implements Listener {
 		for(Zone zone: zones){
 			if(zone.getName().equalsIgnoreCase(warp)){
 				if(isAccessible(player,zone)){
-					if(player.hasPermission("previsit.useenergy"))
-						energies.put(player.getName(), new Integer(energies.get(player.getName()).intValue()-zone.getRequiredEnergy(player)));//player.getWorld().getName(),player.getLocation().getX(),player.getLocation().getY(),player.getLocation().getZ())));
+					if(player.hasPermission("previsit.useenergy")) {
+						int playerEnergy = energiesUUID.get(player.getUniqueId()).intValue();
+						energiesUUID.put(player.getUniqueId(),new Integer(playerEnergy-zone.getRequiredEnergy(player)));
+					}
 					player.sendMessage(ChatColor.GREEN+"You are teleporting to " + ChatColor.GOLD+zone.getName());
 					return player.teleport(zone.getLocation());
 					//return ServerInterface.setPlayerLocation(zone.World, zone.X, zone.Y, zone.Z, zone.Yaw, zone.Pitch, player.getName());

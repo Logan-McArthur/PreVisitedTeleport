@@ -71,7 +71,7 @@ public class PreVisit extends JavaPlugin {
 		return serverlistener.requestTeleport(player, warp);
 	}
 	
-	public void warps(Player player){
+	private void warps(Player player){
 		serverlistener.getWarps(player);
 	}
 	
@@ -86,9 +86,10 @@ public class PreVisit extends JavaPlugin {
 			if(!(sender instanceof Player)){
 				return false;
 			}
-			String str = compileArgs(args,true);
-			
-			return requestTeleport((Player)sender, str.substring(0,str.length()-1));
+//			System.out.println("Begin debug for command ft");
+			String warpname = compileArgs(args,true);
+//			System.out.println("String warpname equals \"" + warpname + "\"");
+			return onCommandFt((Player) sender, warpname);
 		}else if(cmd.getName().equalsIgnoreCase("warps")){
 			//TODO: More warps features
 			if(args.length>0){
@@ -172,15 +173,26 @@ public class PreVisit extends JavaPlugin {
 		return false;
 	}
 
+	private boolean onCommandFt(Player play, String WarpName) {
+		return requestTeleport(play, WarpName);
+	}
 	
-	
-	
+	private boolean onCommandWarps(Player play, String WarpName) {
+		return true;
+	}
+	/**
+	 * Function returns a trailing space
+	 * Trailing space causes pain to appear elsewhere
+	 * @param args
+	 * @param startAt0
+	 * @return
+	 */
 	private String compileArgs(String[] args, boolean startAt0){
 		String nam = "";
 		for(int i = (startAt0?0:1); i < args.length; i++){
 			nam = nam + args[i]+" ";
 		}
-		return nam;
+		return nam.substring(0, nam.length()-1);
 	}
 	
 	public int requiredEnergy(Player play, String zone){

@@ -42,7 +42,7 @@ public class Zone {
 		if(!Position.getWorld().equals(player.getWorld())){
 			return 90000;
 		}
-		return (int) (Position.distance(player.getLocation())/25)^2;
+		return (int) (Position.distance(player.getLocation()));
 	}
 	
 	public boolean hasVisited(Player play){
