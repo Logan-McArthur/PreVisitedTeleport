@@ -274,10 +274,7 @@ public class ServerPL implements Listener {
 				if(str.equals(WARP_HEADER)){
 					break;
 				}
-				System.out.println(str);
 				String[] info = str.split(Zone.UUID_SEPARATOR);
-				System.out.println(info[0]);
-				System.out.println(info[1]);
 				energiesUUID.put(UUID.fromString(info[0]), 
 						new Integer(Integer.parseInt(info[1])));
 			}
