@@ -262,6 +262,9 @@ public class ServerPL implements Listener {
 				if(str.equals(ENERGY_UUID_HEADER)){
 					break;
 				}
+				if(str.equals(WARP_HEADER)){
+					break;
+				}
 				energies.put(str.split(Zone.SEPARATOR)[0], new Integer(Integer.parseInt(str.split(Zone.SEPARATOR)[1])));
 			}while(fileScanner.hasNextLine()){
 				str = fileScanner.nextLine();
