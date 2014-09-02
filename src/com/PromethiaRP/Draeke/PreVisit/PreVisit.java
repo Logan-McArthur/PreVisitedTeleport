@@ -25,15 +25,15 @@ public class PreVisit extends JavaPlugin {
 	private ServerPL serverlistener;
 	
 	private final String FILENAME = "PreVisit.data";
-	private File DATAFOLDER = new File("plugins\\PreVisitedTeleport");
-	private File DATAFILE = new File(DATAFOLDER.getPath()+"\\" + FILENAME);
+	private File DATAFOLDER = new File("plugins" +File.separator +"PreVisitedTeleport");
+	private File DATAFILE = new File(DATAFOLDER.getPath()+File.separator + FILENAME);
 	
 	
 	
 	@Override
 	public void onEnable(){
 		checkFile();
-		serverlistener = new ServerPL(this,DATAFILE);
+		serverlistener = new ServerPL(this,DATAFILE, DATAFOLDER);
 		serverlistener.load();
 		getServer().getPluginManager().registerEvents(serverlistener, this);
 	}
@@ -79,6 +79,7 @@ public class PreVisit extends JavaPlugin {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
+		
 		if(cmd.getName().equalsIgnoreCase("ft")){
 			if(args.length < 1){
 				return false;
@@ -90,20 +91,16 @@ public class PreVisit extends JavaPlugin {
 			String warpname = compileArgs(args,true);
 //			System.out.println("String warpname equals \"" + warpname + "\"");
 			return onCommandFt((Player) sender, warpname);
+		
 		}else if(cmd.getName().equalsIgnoreCase("warps")){
 			//TODO: More warps features
+			String warpname = null;
 			if(args.length>0){
-				String str = compileArgs(args,true);
-				int val = requiredEnergy((Player)sender,str);
-				if(val == -1){
-					sender.sendMessage(ChatColor.RED+"Invalid warp name.");
-					return true;
-				}
-				sender.sendMessage("The energy required for you to teleport to " + ChatColor.GOLD + str + ChatColor.WHITE + " is: " + val);
-				return true;
+				warpname = compileArgs(args,true);
 			}
-			warps((Player)sender);
+			onCommandWarps((Player)sender,warpname);
 			return true;
+			
 		}else if(cmd.getName().equalsIgnoreCase("energy")){
 			if(!(sender instanceof Player)){
 				return false;
@@ -120,6 +117,7 @@ public class PreVisit extends JavaPlugin {
 			}
 			requestEnergy((Player)sender);
 			return true;
+		
 		}else if(cmd.getName().equalsIgnoreCase("svwarp")){
 			if(!(sender instanceof Player)){
 				return false;
@@ -134,7 +132,7 @@ public class PreVisit extends JavaPlugin {
 						return false;
 					}
 					String nam = compileArgs(args,false);
-					nam = nam.substring(0,nam.length()-1);
+					
 					if(createWarp(((Player)sender).getLocation(), nam, radius)){
 						sender.sendMessage(ChatColor.GREEN + "You have successfully created the warp called: " + ChatColor.GOLD + nam);
 					}else{
@@ -143,7 +141,7 @@ public class PreVisit extends JavaPlugin {
 					return true;
 				}catch(NumberFormatException e){
 					String nam = compileArgs(args,true);
-					if(createWarp(((Player)sender).getLocation(), nam.substring(0,nam.length()-1))){
+					if(createWarp(((Player)sender).getLocation(), nam)){
 						sender.sendMessage(ChatColor.GREEN + "You have successfully created the public warp called: " + ChatColor.GOLD + nam);
 					}else{
 						sender.sendMessage(ChatColor.RED + "There was a problem creating the warp called: " + ChatColor.GOLD + nam);
@@ -151,6 +149,7 @@ public class PreVisit extends JavaPlugin {
 					return true;
 				}
 			}
+		
 		}else if(cmd.getName().equalsIgnoreCase("dvwarp")){
 			if(args.length<1){
 				return false;
@@ -158,7 +157,7 @@ public class PreVisit extends JavaPlugin {
 			if(sender instanceof Player){
 				if(((Player)sender).hasPermission("previsit.dvwarp")){
 					String nam = compileArgs(args,true);
-					nam = nam.substring(0,nam.length()-1);
+					
 					if(deleteWarp(nam)){
 						sender.sendMessage(ChatColor.GREEN + "Successfully deleted the warp called: " + ChatColor.GOLD + nam);
 						return true;
@@ -178,15 +177,23 @@ public class PreVisit extends JavaPlugin {
 	}
 	
 	private boolean onCommandWarps(Player play, String WarpName) {
+		if (WarpName == null) {
+			warps(play);
+			
+		} else {
+			int requiredEnergy = requiredEnergy(play,WarpName);
+			if (requiredEnergy == -1) {
+				play.sendMessage(ChatColor.RED+"Invalid warp name.");
+			} else {
+				play.sendMessage("The energy required for you to teleport to " +
+						ChatColor.GOLD + WarpName + ChatColor.WHITE + " is: " + requiredEnergy);
+			}
+			
+		}
+		
 		return true;
 	}
-	/**
-	 * Function returns a trailing space
-	 * Trailing space causes pain to appear elsewhere
-	 * @param args
-	 * @param startAt0
-	 * @return
-	 */
+	
 	private String compileArgs(String[] args, boolean startAt0){
 		String nam = "";
 		for(int i = (startAt0?0:1); i < args.length; i++){

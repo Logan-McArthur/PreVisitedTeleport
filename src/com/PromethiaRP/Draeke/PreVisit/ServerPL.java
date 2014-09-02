@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,16 +35,22 @@ public class ServerPL implements Listener {
 	private static Map<UUID, Integer> energiesUUID = new HashMap<UUID, Integer>();
 	private static ArrayList<String> coolDown = new ArrayList<String>();
 	private Date lastDate;
+	
 	private final File DATAFILE;
+	private final File DATAFOLDER;
+	
 	public static final boolean COMBAT_WAIT = false;
 	public static final String ENERGY_HEADER = 		"========Energies========";
 	public static final String ENERGY_UUID_HEADER = "========UniqueEnergies========";
 	public static final String WARP_HEADER = 		"========Warps========";
-	public ServerPL(PreVisit pv, File dataFile){
+	
+	public ServerPL(PreVisit pv, File dataFile, File dataFolder){
 		plugin = pv;
 		lastDate = new Date();
 		DATAFILE = dataFile;
+		DATAFOLDER = dataFolder;
 	}
+	
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent e){
 		checkEnergy(e.getPlayer());
@@ -110,15 +117,12 @@ public class ServerPL implements Listener {
 			}
 		}
 		player.sendMessage(ChatColor.RED + "The warp " + ChatColor.GOLD + warp + ChatColor.RED+" was not found.");
-		store();
 		return true;
 	}
 	
 	public boolean canTeleport(Player player){
 		return player.isOp() || !(player.hasPermission("previsit.combatwait") && coolDown.contains(player.getName()));
-		//return ((!player.hasPermission("previsit.combatwait"))
-		//		||
-		//		!coolDown.contains(player.getName())) || player.isOp();
+		
 	}
 	
 	public boolean createWarp(Location loc, String name, int size){
@@ -215,19 +219,20 @@ public class ServerPL implements Listener {
 		player.sendMessage(warps);
 	}
 	
-	/**
-	 * Change the method to store the UUID of the player
-	 * Put a symbol at the front of each line?
-	 * Storing the UUID
-	 * recalling the UUID
-	 */
+
+	public void store() {
+		store(DATAFILE);
+		checkBackup();
+	}
 	
-	public void store(){
+	public void store(File storage){
 		updateEnergies();
+		//validateFile(storage);
+		
 		FileWriter fw;
 		PrintWriter pw;
 		try{
-			fw = new FileWriter(DATAFILE);
+			fw = new FileWriter(storage);
 			pw = new PrintWriter(fw,true);
 			pw.println(ENERGY_HEADER);
 			for(String name: energies.keySet()){
@@ -246,6 +251,54 @@ public class ServerPL implements Listener {
 		}catch(IOException e){
 			e.printStackTrace();
 		}
+	}
+	
+	
+	public boolean checkBackup() {
+		Calendar cal = Calendar.getInstance();
+		String title = "Backup_" + cal.get(Calendar.DAY_OF_MONTH) + "_" + cal.get(Calendar.MONTH) + "_" + cal.get(Calendar.YEAR) + ".data";
+		File[] directory = DATAFOLDER.listFiles();
+		int oldest = 0;
+		long oldestTime = 0;
+		boolean savedToday = false;
+		for (int i = 0; i < directory.length; i++) {
+			if(directory[i].getName().contains("Backup_")) {
+				if (oldest == 0) {
+					oldest = i;
+					oldestTime = directory[i].lastModified();
+				}
+				
+				if (directory[i].getName().equalsIgnoreCase(title)) {
+					savedToday = true;
+				}
+				
+				if (directory[i].lastModified() < oldestTime) {
+					oldest = i;
+					oldestTime = directory[i].lastModified();
+				}
+			}
+			
+		}
+		if ( ! savedToday) {
+			File fl = new File(DATAFOLDER.getPath() + File.separator + title);
+			if (!fl.exists()) {
+				try {
+					fl.createNewFile();
+					store(fl);
+				} catch (IOException e) {
+					System.err.println("Error creating a backup file");
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		// I need to exert some control over the delete.
+		if (directory.length > 3 && directory[oldest].getName().contains("Backup_")) {
+			
+			directory[oldest].delete();
+		}
+		
+		return true;
 	}
 	
 	public void load(){
@@ -324,11 +377,11 @@ public class ServerPL implements Listener {
 		return null;
 	}
 	
+	// It's unnecessary to store the entire file when just the energies are being updated
 	public void giveEnergyToAll(int amount){
-		for(String str: energies.keySet()){
-			energies.put(str, new Integer(energies.get(str).intValue()+amount));
+		for(UUID uid: energiesUUID.keySet()){
+			energiesUUID.put(uid, new Integer(energiesUUID.get(uid).intValue()+amount));
 		}
-		store();
 	}
 	
 	public boolean deleteWarp(String nam) {
