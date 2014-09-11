@@ -285,9 +285,11 @@ public class ServerPL implements Listener {
 				try {
 					fl.createNewFile();
 					store(fl);
+					savedToday = true;
 				} catch (IOException e) {
 					System.err.println("Error creating a backup file");
 					e.printStackTrace();
+					savedToday = false;
 				}
 			}
 		}
@@ -298,7 +300,7 @@ public class ServerPL implements Listener {
 			directory[oldest].delete();
 		}
 		
-		return true;
+		return savedToday;
 	}
 	
 	public void load(){
