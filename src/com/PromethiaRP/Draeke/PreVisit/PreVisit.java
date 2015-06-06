@@ -27,13 +27,13 @@ public class PreVisit extends JavaPlugin {
 	private final String FILENAME = "PreVisit.data";
 	private File DATAFOLDER = new File("plugins" +File.separator +"PreVisitedTeleport");
 	private File DATAFILE = new File(DATAFOLDER.getPath()+File.separator + FILENAME);
-	
+	private File BACKUPFOLDER = new File(DATAFOLDER.getPath() + File.separator + "Backups");
 	
 	
 	@Override
 	public void onEnable(){
 		checkFile();
-		serverlistener = new ServerPL(this,DATAFILE, DATAFOLDER);
+		serverlistener = new ServerPL(this,DATAFILE, BACKUPFOLDER);
 		serverlistener.load();
 		getServer().getPluginManager().registerEvents(serverlistener, this);
 	}
@@ -48,6 +48,9 @@ public class PreVisit extends JavaPlugin {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+		if(!BACKUPFOLDER.exists()) {
+			BACKUPFOLDER.mkdir();
 		}
 	}
 	

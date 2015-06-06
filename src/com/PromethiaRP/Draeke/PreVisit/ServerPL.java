@@ -37,18 +37,18 @@ public class ServerPL implements Listener {
 	private Date lastDate;
 	
 	private final File DATAFILE;
-	private final File DATAFOLDER;
+	private final File BACKUPFOLDER;
 	
 	public static final boolean COMBAT_WAIT = false;
 	public static final String ENERGY_HEADER = 		"========Energies========";
 	public static final String ENERGY_UUID_HEADER = "========UniqueEnergies========";
 	public static final String WARP_HEADER = 		"========Warps========";
 	
-	public ServerPL(PreVisit pv, File dataFile, File dataFolder){
+	public ServerPL(PreVisit pv, File dataFile, File backupFolder){
 		plugin = pv;
 		lastDate = new Date();
 		DATAFILE = dataFile;
-		DATAFOLDER = dataFolder;
+		BACKUPFOLDER = backupFolder;
 	}
 	
 	@EventHandler
@@ -194,8 +194,52 @@ public class ServerPL implements Listener {
 	}
 	
 	public boolean isAccessible(Player player, Zone zone){
-		return ((zone.hasVisited(player))&&((getEnergy(player)>=zone.getRequiredEnergy(player))
-				||!player.hasPermission("previsit.useenergy")))||zone.isPublic()||(player.hasPermission("previsit.allwarps"));
+		
+		boolean worldChangeAllowed = false;
+		boolean worldChange = !player.getWorld().getName().equalsIgnoreCase(zone.getLocation().getWorld().getName());
+//		System.out.println(zone.getName());
+//		System.out.println(zone.getLocation().getWorld().getName());
+//		System.out.println(player.getWorld().getName());
+		boolean visited = zone.hasVisited(player);
+		boolean energyRequirementsMet = getEnergy(player)>=zone.getRequiredEnergy(player);
+		boolean playerMustUseEnergy = player.hasPermission("previsit.useenergy");
+		boolean publicZone = zone.isPublic();
+		boolean playerAllWarps = player.hasPermission("previsit.allwarps");
+		
+		if (playerAllWarps) {	// Ops only
+//			System.out.println("Player all warps: " + playerAllWarps);
+			return true;
+		}
+		// If world change is not allowed and the player is trying to change worlds
+		if ( ! worldChangeAllowed && worldChange) {
+//			System.out.println("World change allowed: " + worldChangeAllowed+ ", Player change world: " + worldChange);
+			
+			return false;
+		}
+		
+		if (playerMustUseEnergy && !energyRequirementsMet) {
+//			System.out.println("Player need energy: " + playerMustUseEnergy + ", Player meets energy: " + energyRequirementsMet);
+			return false;
+		}
+		
+		// Zone is not public, and player has not visited
+		if ( publicZone) {
+//			System.out.println("Public zone returns true");
+			return true;
+		}
+		
+		return visited;
+		
+//		return playerAllWarps || ( ( !worldChangeAllowed || !worldChange ) && ( ( playerMustUseEnergy && energyRequirementsMet) ) );
+//		return ((zone.hasVisited(player))
+//				&&
+//				((getEnergy(player)>=zone.getRequiredEnergy(player))
+//				||
+//				!player.hasPermission("previsit.useenergy")))
+//				||
+//				zone.isPublic()
+//				||
+//				(player.hasPermission("previsit.allwarps"));
 	}
 	
 
@@ -257,7 +301,7 @@ public class ServerPL implements Listener {
 	public boolean checkBackup() {
 		Calendar cal = Calendar.getInstance();
 		String title = "Backup_" + cal.get(Calendar.DAY_OF_MONTH) + "_" + cal.get(Calendar.MONTH) + "_" + cal.get(Calendar.YEAR) + ".data";
-		File[] directory = DATAFOLDER.listFiles();
+		File[] directory = BACKUPFOLDER.listFiles();
 		int oldest = 0;
 		long oldestTime = 0;
 		boolean savedToday = false;
@@ -280,7 +324,7 @@ public class ServerPL implements Listener {
 			
 		}
 		if ( ! savedToday) {
-			File fl = new File(DATAFOLDER.getPath() + File.separator + title);
+			File fl = new File(BACKUPFOLDER.getPath() + File.separator + title);
 			if (!fl.exists()) {
 				try {
 					fl.createNewFile();
