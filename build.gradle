@@ -1,0 +1,34 @@
+apply plugin: 'java'
+
+repositories {
+    maven {
+        name 'Spigot'
+        url 'https://hub.spigotmc.org/nexus/content/groups/public/'
+    }
+
+    maven {
+        name 'BungeeCord'
+        url 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+}
+
+dependencies {
+    compile group: 'org.spigotmc', name: 'spigot-api', version: '1.8.7-R0.1-SNAPSHOT'
+    compile group: 'org.bukkit', name: 'bukkit', version: '1.8.7-R0.1-SNAPSHOT'
+}
+
+version = '2.1.0'
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+task makeJar(type: Jar) {
+	manifest {
+	attributes 'Implementation-Title': 'PreVisitedTeleport',
+			'Implementation-Version': version
+//			, 'Main-Class': 'com.PromethiaRP.Draeke.PreVisit'
+	}
+	baseName = project.name
+	archiveName = 'PreVisitedTeleport.jar'
+	//from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+	with jar
+}
