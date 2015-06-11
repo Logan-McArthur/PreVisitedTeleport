@@ -229,17 +229,6 @@ public class ServerPL implements Listener {
 		}
 		
 		return visited;
-		
-//		return playerAllWarps || ( ( !worldChangeAllowed || !worldChange ) && ( ( playerMustUseEnergy && energyRequirementsMet) ) );
-//		return ((zone.hasVisited(player))
-//				&&
-//				((getEnergy(player)>=zone.getRequiredEnergy(player))
-//				||
-//				!player.hasPermission("previsit.useenergy")))
-//				||
-//				zone.isPublic()
-//				||
-//				(player.hasPermission("previsit.allwarps"));
 	}
 	
 
