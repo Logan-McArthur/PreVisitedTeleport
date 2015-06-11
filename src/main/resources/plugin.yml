@@ -30,6 +30,7 @@ permissions:
    previsit.useenergy: false
    previsit.combatwait: false
    previsit.allwarps: true
+   previsit.giveenergy: true
   default: op
  previsit.svwarp:
   description: Allows you to create a warp.
@@ -46,3 +47,6 @@ permissions:
  previsit.allwarps:
   description: Whether or not a player can visit any warp.
   default: false
+ previsit.giveenergy:
+  description: Whether or not the player can give others energy.
+  default: op

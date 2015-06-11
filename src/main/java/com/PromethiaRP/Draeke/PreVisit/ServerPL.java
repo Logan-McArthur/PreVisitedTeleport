@@ -9,6 +9,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -29,6 +30,8 @@ import org.bukkit.event.player.PlayerMoveEvent;
  */
 public class ServerPL implements Listener {
 
+	//TODO: ServerPL should handle the things that go on with the player
+	
 	public PreVisit plugin;
 	private Set<Zone> zones = new HashSet<Zone>();
 	private static Map<String,Integer> energies = new HashMap<String,Integer>();
@@ -57,6 +60,11 @@ public class ServerPL implements Listener {
 		for(Zone zon: zones){
 			if(zon.withinRange(e.getPlayer())){
 				if(zon.addPlayer(e.getPlayer())){
+					if (zon.isPublic()) {
+						//messenger.discoverPublicWarp(player, zon.getName());
+					} else {
+						//messenger.discoverRegularWarp(player, zon.getName());
+					}
 					e.getPlayer().sendMessage(ChatColor.GREEN + "You have discovered the warp " + ChatColor.GOLD + zon.getName());
 				}
 			}
@@ -94,56 +102,36 @@ public class ServerPL implements Listener {
 		}, 100L);
 	}
 	
-	public boolean requestTeleport(Player player, String warp){
-		checkEnergy(player);
-//		if(!canTeleport(player)){
-//			player.sendMessage(ChatColor.RED + "You can not fast travel while in combat.");
-//			return false;
-//		}
-		for(Zone zone: zones){
-			if(zone.getName().equalsIgnoreCase(warp)){
-				if(isAccessible(player,zone)){
-					if(player.hasPermission("previsit.useenergy")) {
-						int playerEnergy = energiesUUID.get(player.getUniqueId()).intValue();
-						energiesUUID.put(player.getUniqueId(),new Integer(playerEnergy-zone.getRequiredEnergy(player)));
-					}
-					player.sendMessage(ChatColor.GREEN+"You are teleporting to " + ChatColor.GOLD+zone.getName());
-					return player.teleport(zone.getLocation());
-					//return ServerInterface.setPlayerLocation(zone.World, zone.X, zone.Y, zone.Z, zone.Yaw, zone.Pitch, player.getName());
-				}else{
-					player.sendMessage(ChatColor.RED + "You do not have access to this warp");
-					return true;
-				}
-			}
-		}
-		player.sendMessage(ChatColor.RED + "The warp " + ChatColor.GOLD + warp + ChatColor.RED+" was not found.");
-		return true;
+
+	
+	public boolean doesWarpExist(String warpName) {
+		return getZoneByName(warpName) != null;
 	}
 	
-	public boolean canTeleport(Player player){
-		return player.isOp() || !(player.hasPermission("previsit.combatwait") && coolDown.contains(player.getName()));
-		
+	public Zone getZoneByName(String name) {
+		for (Zone zone : zones) {
+			if (zone.getName().equalsIgnoreCase(name)) {
+				return zone;
+			}
+		}
+		return null;
 	}
 	
 	public boolean createWarp(Location loc, String name, int size){
-		for(Zone zone: zones){
-			if(zone.getName().equalsIgnoreCase(name)){
-				return false;
-			}
+		if (! doesWarpExist(name)) {	// Warp does not exist, make a new one
+			zones.add(new Zone(loc,size,name));
+			store();
+			return true;
 		}
-		zones.add(new Zone(loc,size,name));
-		store();
-		return true;
+		return false;
 	}
 	public boolean createWarp(Location loc, String name){
-		for(Zone zone: zones){
-			if(zone.getName().equalsIgnoreCase(name)){
-				return false;
-			}
+		if (! doesWarpExist(name)) {	// Warp does not exist, make a new one
+			zones.add(new Zone(loc,name));
+			store();
+			return true;
 		}
-		zones.add(new Zone(loc,name));
-		store();
-		return true;
+		return false;
 	}
 	
 	public static void checkEnergy(Player player){
@@ -160,6 +148,7 @@ public class ServerPL implements Listener {
 			energiesUUID.put(player.getUniqueId(), new Integer(0));
 		}
 	}
+	
 	public static int getEnergy(Player player){
 		checkEnergy(player);
 		if (energiesUUID.get(player.getUniqueId()) == null) {
@@ -168,11 +157,6 @@ public class ServerPL implements Listener {
 		return energiesUUID.get(player.getUniqueId()).intValue();
 	}
 	
-	
-
-	public void requestEnergy(Player player){
-		player.sendMessage("Your current energy level is: " + getEnergy(player));
-	}
 
 	/**
 	 * If the player has not been on to have their tracker updated, they do not get more energy
@@ -193,31 +177,55 @@ public class ServerPL implements Listener {
 		return l/6000;
 	}
 	
-	public boolean isAccessible(Player player, Zone zone){
+	public boolean playerHasEnoughEnergy(Player player, Zone zone) {
+		return getEnergy(player)>=zone.getRequiredEnergy(player);
+	}
+	public boolean playerEnergyRequirement(Player player, Zone zone) {
+		// if do not have enough, return false if player must use energy
+		if ( ! playerHasEnoughEnergy(player, zone)) {
+			return ! player.hasPermission("previsit.useenergy");
+		}
+		// Player has enough energy
+		return true;
+	}
+	
+	public boolean isTeleportAcrossWorlds(Player player, Zone zone) {
+		return !player.getWorld().getName().equalsIgnoreCase(zone.getLocation().getWorld().getName());
+	}
+	public boolean teleportLocationOkay(Player player, Zone zone) {
+		boolean changeAllowed = false;
+		boolean changeAttempt = isTeleportAcrossWorlds(player, zone); 
+		// if attempt and allow = okay
+		// if attempt and not allow = bad
+		// if not attempt and not allow = okay
+		// if not attempt and allow = okay
+		if (changeAttempt) {
+			return changeAllowed;
+		}
+		return false;
+	}
+	private boolean isAccessible(Player player, Zone zone){
 		
-		boolean worldChangeAllowed = false;
-		boolean worldChange = !player.getWorld().getName().equalsIgnoreCase(zone.getLocation().getWorld().getName());
-//		System.out.println(zone.getName());
-//		System.out.println(zone.getLocation().getWorld().getName());
-//		System.out.println(player.getWorld().getName());
+		
 		boolean visited = zone.hasVisited(player);
-		boolean energyRequirementsMet = getEnergy(player)>=zone.getRequiredEnergy(player);
-		boolean playerMustUseEnergy = player.hasPermission("previsit.useenergy");
+		
 		boolean publicZone = zone.isPublic();
 		boolean playerAllWarps = player.hasPermission("previsit.allwarps");
 		
+		// TODO: Consider incorporating into visited check, because ops should not need energy anyway
 		if (playerAllWarps) {	// Ops only
 //			System.out.println("Player all warps: " + playerAllWarps);
 			return true;
 		}
+		
 		// If world change is not allowed and the player is trying to change worlds
-		if ( ! worldChangeAllowed && worldChange) {
+		if (! teleportLocationOkay(player, zone)) {
 //			System.out.println("World change allowed: " + worldChangeAllowed+ ", Player change world: " + worldChange);
 			
 			return false;
 		}
 		
-		if (playerMustUseEnergy && !energyRequirementsMet) {
+		if ( ! playerEnergyRequirement(player, zone)) {
 //			System.out.println("Player need energy: " + playerMustUseEnergy + ", Player meets energy: " + energyRequirementsMet);
 			return false;
 		}
@@ -228,39 +236,38 @@ public class ServerPL implements Listener {
 			return true;
 		}
 		
-		return visited;
 		
-//		return playerAllWarps || ( ( !worldChangeAllowed || !worldChange ) && ( ( playerMustUseEnergy && energyRequirementsMet) ) );
-//		return ((zone.hasVisited(player))
-//				&&
-//				((getEnergy(player)>=zone.getRequiredEnergy(player))
-//				||
-//				!player.hasPermission("previsit.useenergy")))
-//				||
-//				zone.isPublic()
-//				||
-//				(player.hasPermission("previsit.allwarps"));
+		return visited;
+
 	}
 	
 
-	public void getWarps(Player player){
-		String warps = "";
-		for(Zone zon: zones){
-			if(zon.hasVisited(player)||zon.isPublic()||player.hasPermission("previsit.allwarps")){
-				warps = warps + (isAccessible(player,zon) ? ChatColor.GOLD:ChatColor.RED)+zon.getName()+ChatColor.WHITE+", ";
-			}
+	public WarpList getWarps(Player player){
+//		String warps = "";
+		String[] warpNames = new String[zones.size()];
+		boolean[] accessibleWarps = new boolean[zones.size()];
+		Iterator<Zone> iter = zones.iterator();
+		Zone zon = null;
+		for (int i = 0; iter.hasNext(); i++) {
+			zon = iter.next();
+			warpNames[i] = zon.getName();
+			accessibleWarps[i] = isAccessible(player, zon);
 		}
-		if(warps.length()==0){
-			player.sendMessage("There are no warps available to you right now.");
-			return;
-		}else{
-			player.sendMessage(ChatColor.DARK_GREEN+"Here is a list of warps for you.");
-			player.sendMessage("The ones listed in red are too far from you for your current energy level.");
-		}
-		if(warps.substring(warps.length()-2).equals(", ")){
-			warps = warps.substring(0,warps.length()-2)+".";
-		}
-		player.sendMessage(warps);
+		return new WarpList(warpNames, accessibleWarps);
+//		for(Zone zon: zones){
+//			if(zon.hasVisited(player)||zon.isPublic()||player.hasPermission("previsit.allwarps")){
+//				warps = warps + (isAccessible(player,zon) ? ChatColor.GOLD:ChatColor.RED)+zon.getName()+ChatColor.WHITE+", ";
+//			}
+//		}
+		
+//		if(warps.length()==0){
+//			player.sendMessage("There are no warps available to you right now.");
+//			return;
+//		} else {
+//			player.sendMessage(ChatColor.DARK_GREEN+"Here is a list of warps for you.");
+//			player.sendMessage("The ones listed in red are too far from you for your current energy level.");
+//		}
+//		player.sendMessage(warps);
 	}
 	
 
@@ -447,6 +454,6 @@ public class ServerPL implements Listener {
 				return zon.getRequiredEnergy(player);//.getWorld().getName(),player.getLocation().getX(),player.getLocation().getY(),player.getLocation().getZ());
 			}
 		}
-		return -1;
+		throw new IllegalArgumentException("Zone: " + zone + " not found.");
 	}
 }
