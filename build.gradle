@@ -17,7 +17,7 @@ dependencies {
     compile group: 'org.bukkit', name: 'bukkit', version: '1.8.7-R0.1-SNAPSHOT'
 }
 
-version = '2.1'
+version = '2.1.0'
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
