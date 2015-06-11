@@ -20,9 +20,11 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class PreVisit extends JavaPlugin {
 
-	
+	//TODO: Move the messaging stuff back to the ServerPL ????
+	//TODO: PreVisit should be the configuration stuff and the stuff that makes sure commands are properly formatted
 	private final Logger logger = Logger.getLogger("Minecraft");
 	private ServerPL serverlistener;
+	private MessageDispatcher messenger;
 	
 	private final String FILENAME = "PreVisit.data";
 	private File DATAFOLDER = new File("plugins" +File.separator +"PreVisitedTeleport");
@@ -35,6 +37,7 @@ public class PreVisit extends JavaPlugin {
 		checkFile();
 		serverlistener = new ServerPL(this,DATAFILE, BACKUPFOLDER);
 		serverlistener.load();
+		messenger = new MessageDispatcher();
 		getServer().getPluginManager().registerEvents(serverlistener, this);
 	}
 	
@@ -70,15 +73,7 @@ public class PreVisit extends JavaPlugin {
 	public boolean createWarp(Location loc, String name){
 		return serverlistener.createWarp(loc, name);
 	}
-	public boolean requestTeleport(Player player, String warp){
-		return serverlistener.requestTeleport(player, warp);
-	}
-	
-	private void warps(Player player){
-		serverlistener.getWarps(player);
-	}
-	
-	
+
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
@@ -88,10 +83,11 @@ public class PreVisit extends JavaPlugin {
 				return false;
 			}
 			if(!(sender instanceof Player)){
+				// Only players can teleport
 				return false;
 			}
 //			System.out.println("Begin debug for command ft");
-			String warpname = compileArgs(args,true);
+			String warpname = compileArgs(args,0);
 //			System.out.println("String warpname equals \"" + warpname + "\"");
 			return onCommandFt((Player) sender, warpname);
 		
@@ -99,7 +95,7 @@ public class PreVisit extends JavaPlugin {
 			//TODO: More warps features
 			String warpname = null;
 			if(args.length>0){
-				warpname = compileArgs(args,true);
+				warpname = compileArgs(args,0);
 			}
 			onCommandWarps((Player)sender,warpname);
 			return true;
@@ -108,17 +104,18 @@ public class PreVisit extends JavaPlugin {
 			if(!(sender instanceof Player)){
 				return false;
 			}
-			if(((Player)sender).isOp()){
-				if(args.length == 0) {
-					requestEnergy((Player)sender);
+			if(args.length > 1 && args[0].equalsIgnoreCase("giveall")) {
+				
+				if( sender.hasPermission("previsit.giveenergy")){
+					int amount = Integer.parseInt(args[1]);
+					messenger.energyGiveAll(sender, amount);
+					giveEnergyToAll(amount);
 					return true;
 				}
-				if(args[0].equalsIgnoreCase("giveall")){
-					giveEnergyToAll(Integer.parseInt(args[1]));
-					return true;
-				}
+				
 			}
-			requestEnergy((Player)sender);
+			
+			messenger.energyLevelSelf(sender, getPlayerEnergy((Player)sender));
 			return true;
 		
 		}else if(cmd.getName().equalsIgnoreCase("svwarp")){
@@ -129,25 +126,26 @@ public class PreVisit extends JavaPlugin {
 				if(args.length<1){
 					return false;
 				}
+				
 				try{
 					int radius = Integer.parseInt(args[0]);
 					if(args.length<2){
 						return false;
 					}
-					String nam = compileArgs(args,false);
+					String nam = compileArgs(args,1);
 					
 					if(createWarp(((Player)sender).getLocation(), nam, radius)){
-						sender.sendMessage(ChatColor.GREEN + "You have successfully created the warp called: " + ChatColor.GOLD + nam);
+						messenger.createWarpSuccess(sender, nam);
 					}else{
-						sender.sendMessage(ChatColor.RED + "There was a problem creating the warp called: " + ChatColor.GOLD + nam);
+						messenger.createWarpFailure(sender, nam);
 					}
 					return true;
 				}catch(NumberFormatException e){
-					String nam = compileArgs(args,true);
+					String nam = compileArgs(args,0);
 					if(createWarp(((Player)sender).getLocation(), nam)){
-						sender.sendMessage(ChatColor.GREEN + "You have successfully created the public warp called: " + ChatColor.GOLD + nam);
+						messenger.createPublicWarpSuccess(sender, nam);
 					}else{
-						sender.sendMessage(ChatColor.RED + "There was a problem creating the warp called: " + ChatColor.GOLD + nam);
+						messenger.createPublicWarpFailure(sender, nam);
 					}
 					return true;
 				}
@@ -157,52 +155,105 @@ public class PreVisit extends JavaPlugin {
 			if(args.length<1){
 				return false;
 			}
-			if(sender instanceof Player){
-				if(((Player)sender).hasPermission("previsit.dvwarp")){
-					String nam = compileArgs(args,true);
-					
-					if(deleteWarp(nam)){
-						sender.sendMessage(ChatColor.GREEN + "Successfully deleted the warp called: " + ChatColor.GOLD + nam);
-						return true;
-					}else{
-						sender.sendMessage(ChatColor.RED + "An error occured deleting the warp called: " + ChatColor.GOLD + nam);
-						return true;
-					}
+			
+			if(sender.hasPermission("previsit.dvwarp")){
+				String nam = compileArgs(args,0);
+
+				if(deleteWarp(nam)){
+					messenger.deleteWarpSuccess(sender, nam);
+				}else{
+					messenger.deleteWarpFailure(sender, nam);
 				}
+				return true;
 			}
+			
 		}
 		
 		return false;
 	}
 
-	private boolean onCommandFt(Player play, String WarpName) {
-		return requestTeleport(play, WarpName);
+	/**
+	 * Assumes that the command is properly formatted.
+	 * Returns a boolean value indicating if the player was teleported.
+	 * 
+	 * @param play
+	 * @param warpName
+	 * @return
+	 */
+	private boolean onCommandFt(Player player, String warpName) {
+		serverlistener.checkEnergy(player);
+		if ( ! serverlistener.doesWarpExist(warpName)) {
+			messenger.warpNotFound(player, warpName);
+			return false;
+		}
+		
+		Zone zone = serverlistener.getZoneByName(warpName);
+		
+		boolean visited = zone.hasVisited(player);
+		
+		boolean publicZone = zone.isPublic();
+		boolean playerAllWarps = player.hasPermission("previsit.allwarps");
+		
+		// TODO: Consider incorporating into visited check, because ops should not need energy anyway
+		if (playerAllWarps) {	// Ops only
+			messenger.teleportAdminSuccess(player, warpName);
+			player.teleport(zone.getLocation());
+			return true;
+		}
+		
+		if (! serverlistener.teleportLocationOkay(player, zone)) {
+			messenger.teleportFailWorldChange(player, warpName);
+			return false;
+		}
+		
+		if ( ! serverlistener.playerEnergyRequirement(player, zone)) {
+			messenger.teleportFailEnergy(player, warpName, 0, 0);
+			return false;
+		}
+		
+		// Zone is not public, and player has not visited
+		if ( ! publicZone && !visited) {	// Both false
+			messenger.teleportFailNotFound(player, warpName);
+			return false;
+		}
+		// One is true
+		if (publicZone) {
+			messenger.teleportPublicSuccess(player, warpName);
+		} else {
+			messenger.teleportVisitSuccess(player, warpName);
+		}
+		player.teleport(zone.getLocation());
+		return true;
+		//return serverlistener.requestTeleport(player, warpName);
 	}
 	
 	private boolean onCommandWarps(Player play, String WarpName) {
 		if (WarpName == null) {
-			warps(play);
+			WarpList list = serverlistener.getWarps(play);
 			
-		} else {
-			int requiredEnergy = requiredEnergy(play,WarpName);
-			if (requiredEnergy == -1) {
-				play.sendMessage(ChatColor.RED+"Invalid warp name.");
+			if (list.warpNames.length == 0) {
+				messenger.warpsNoneAvailable(play);
 			} else {
-				play.sendMessage("The energy required for you to teleport to " +
-						ChatColor.GOLD + WarpName + ChatColor.WHITE + " is: " + requiredEnergy);
+				messenger.warpsList(play, list);
 			}
-			
+			return true;
+		} 
+		if (!serverlistener.doesWarpExist(WarpName)) {
+			messenger.warpNotFound(play, WarpName);
 		}
+		int requiredEnergy = requiredEnergy(play,WarpName);
 		
+		messenger.energyRequiredToTeleport(play, WarpName, requiredEnergy);
 		return true;
 	}
 	
-	private String compileArgs(String[] args, boolean startAt0){
-		String nam = "";
-		for(int i = (startAt0?0:1); i < args.length; i++){
-			nam = nam + args[i]+" ";
+	private String compileArgs(String[] args, int startLocation) {
+		String result = args[startLocation];
+
+		for (int i = startLocation + 1; i < args.length; i++) {
+			result += " " + args[i];
 		}
-		return nam.substring(0, nam.length()-1);
+		return result;
 	}
 	
 	public int requiredEnergy(Player play, String zone){
@@ -212,8 +263,10 @@ public class PreVisit extends JavaPlugin {
 		
 		serverlistener.giveEnergyToAll(amount);
 	}
-	public void requestEnergy(Player player){
-		serverlistener.requestEnergy(player);
+
+	
+	public int getPlayerEnergy(Player player) {
+		return serverlistener.getEnergy(player);
 	}
 
 	public boolean deleteWarp(String nam) {
