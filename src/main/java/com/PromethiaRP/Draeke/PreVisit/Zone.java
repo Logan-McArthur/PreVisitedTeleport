@@ -22,8 +22,8 @@ public class Zone {
 	private int range = 0;
 	private String name = "";
 	private boolean isPublic = false;
-	public static final String SEPARATOR = "#";
-	public static final String UUID_SEPARATOR = "@";
+//	public static final String SEPARATOR = "#";
+//	public static final String UUID_SEPARATOR = "@";
 	public Zone(Location loc, int size, String name){
 
 		Position = loc;
@@ -39,9 +39,9 @@ public class Zone {
 	}
 	
 	public int getRequiredEnergy(Player player){
-		if(!Position.getWorld().equals(player.getWorld())){
-			return 90000;
-		}
+//		if(!Position.getWorld().equals(player.getWorld())){
+//			return 90000;
+//		}
 		return (int) (Position.distance(player.getLocation()));
 	}
 	
@@ -83,9 +83,11 @@ public class Zone {
 	public void addPlayers(Set<String> players){
 		Players.addAll(players);
 	}
+	
 	public void addPlayerUUIDs(Set<UUID> uuids) {
 		UUIDs.addAll(uuids);
 	}
+	
 	public boolean withinRange(Player play){
 		if(!Position.getWorld().equals(play.getWorld())){
 			return false;
@@ -96,21 +98,13 @@ public class Zone {
 		return false;
 	}
 	
-	
-	@Override
-	public String toString(){
-		StringBuffer sb = new StringBuffer(name+SEPARATOR+(isPublic?"open":range)+
-				SEPARATOR+Position.getWorld().getName()+SEPARATOR+Position.getX()+SEPARATOR+
-				Position.getY()+SEPARATOR+Position.getZ()+SEPARATOR+Position.getYaw());
-		for(String string: Players){
-			
-			sb.append(SEPARATOR+string);
-		}
-		for(UUID uid: UUIDs) {
-			sb.append(UUID_SEPARATOR + uid.toString());
-		}
-		return sb.toString();
+	public Set<UUID> getVisitedPlayersUUID() {
+		return UUIDs;
 	}
+	public Set<String> getVisitedPlayers() {
+		return Players;
+	}
+	
 	
 	
 }
