@@ -88,7 +88,7 @@ public class MessageDispatcher {
 	public static void teleportFailWorldChange(CommandSender sender, String warpName) {
 		sender.sendMessage(ChatColor.RED + "You are not allowed to teleport to other worlds.");
 	}
-	public static void teleportFailNotFound(CommandSender sender, String warpName) {
+	public static void teleportFailNotVisited(CommandSender sender, String warpName) {
 		sender.sendMessage(ChatColor.RED + "You must discover the warp before you can teleport there.");
 	}
 	

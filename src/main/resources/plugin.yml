@@ -1,5 +1,5 @@
 name: PreVisitedTeleport
-version: 2.1.0
+version: 3.0.0
 description: A teleportation plugin that requires players to visit a location before they can teleport there.
 author: Draeke_Forther
 main: com.PromethiaRP.Draeke.PreVisit.PreVisit

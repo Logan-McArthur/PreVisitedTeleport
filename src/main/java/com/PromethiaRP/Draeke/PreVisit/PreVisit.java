@@ -1,49 +1,76 @@
 package com.PromethiaRP.Draeke.PreVisit;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.Location;
+
 
 /**
  * The main class file in the PreVisitedTeleport plugin designed for use with bukkit
  * 
  * @author Draeke_Forther
- * @version 2.1.0
+ * @version 3.0.0
  * 
  */
-public class PreVisit extends JavaPlugin {
+public class PreVisit extends JavaPlugin implements Listener {
 
-	//TODO: Move the messaging stuff back to the ServerPL ????
-	//TODO: PreVisit should be the configuration stuff and the stuff that makes sure commands are properly formatted
 	private final Logger logger = Logger.getLogger("Minecraft");
-	private ServerPL serverlistener;
-
-
-	
-	
+	private ZoneManager zoneManager;
+	private EnergyManager energyManager;
+	private PlayerManager playerManager;
+	private StorageManager storageManager;
+	private TeleportationManager teleportManager;
 	@Override
-	public void onEnable(){
-
+	public void onEnable() {
+//new File("plugins" + File.separator + "PreVisitedTeleport"))
 		
-		serverlistener = new ServerPL(this, new StorageManager(this, new File("plugins" + File.separator + "PreVisitedTeleport")));
-		serverlistener.load();
+		// TODO: Change how the managers are loaded
+		storageManager = new StorageManager(new File("plugins" + File.separator + "PreVisitedTeleport"));
+		zoneManager = storageManager.loadZones();
+		energyManager = storageManager.loadEnergy();
+		playerManager = storageManager.loadDiscoveries();
+		teleportManager = new TeleportationManager(zoneManager, playerManager, energyManager);
+//		storageManager.load(null, energyManager.getEnergyMap(), zones);
 		
-		getServer().getPluginManager().registerEvents(serverlistener, this);
+		getServer().getPluginManager().registerEvents(this, this);
 	}
 	
 
 	
 	@Override
 	public void onDisable(){
-//		serverlistener.store();
+
 	}
 	
 	public void log(String info){
 		logger.info("[PVT]: " + info);
+	}
+	
+	@EventHandler
+	public void onPlayerMove(PlayerMoveEvent event) {
+		Player play = event.getPlayer();
+		Zone zone = zoneManager.getContainingZone(play.getLocation());
+		if (zone == null) {
+			return;
+		}
+		
+		if(playerManager.addZoneToPlayer(play, zone.getName())){
+			if (zone.isPublic()) {
+				MessageDispatcher.discoverPublicWarp(play, zone.getName());
+			} else {
+				MessageDispatcher.discoverRegularWarp(play, zone.getName());
+			}
+		}
+		
 	}
 	
 	@Override
@@ -58,18 +85,20 @@ public class PreVisit extends JavaPlugin {
 				return false;
 			}
 
-			String warpName = compileArgs(args,0);
+			String warpName = compileArgs(args, 0);
 
-//			return onCommandFt((Player) sender, warpname);
-			initiateFt((Player) sender, warpName);
+			this.fastTravel((Player)sender, warpName);
+			
 			return true;
 		}else if(cmd.getName().equalsIgnoreCase("warps")){
 			//TODO: More warps features
 			String warpname = null;
-			if(args.length>0){
+			if(args.length > 0){
 				warpname = compileArgs(args,0);
 			}
+			
 			onCommandWarps((Player)sender,warpname);
+			
 			return true;
 			
 		}else if(cmd.getName().equalsIgnoreCase("energy")){
@@ -81,17 +110,19 @@ public class PreVisit extends JavaPlugin {
 				if( sender.hasPermission("previsit.giveenergy")){
 					int amount = Integer.parseInt(args[1]);
 					MessageDispatcher.energyGiveAll(sender, amount);
-					serverlistener.giveEnergyToAll(amount);
+					
+					energyManager.giveEnergyToAll(amount);
+					
 					return true;
 				}
 				
 			}
 			
-			MessageDispatcher.energyLevelSelf(sender, ServerPL.getEnergy((Player)sender));
+			MessageDispatcher.energyLevelSelf(sender, energyManager.getEnergy((Player)sender));
 			return true;
 		
-		}else if(cmd.getName().equalsIgnoreCase("svwarp")){
-			if(!(sender instanceof Player)){
+		} else if (cmd.getName().equalsIgnoreCase("svwarp")) {
+			if(!(sender instanceof Player)) {
 				return false;
 			}
 			if(((Player)sender).hasPermission("previsit.svwarp")){
@@ -110,13 +141,14 @@ public class PreVisit extends JavaPlugin {
 					
 					String nam = compileArgs(args,1);
 					
-					if( serverlistener.createWarp(((Player)sender).getLocation(), nam, radius)){
+					if( zoneManager.createZone(Position.convertPosition( ((Player)sender).getLocation() ), nam, radius)){
+						
 						MessageDispatcher.createWarpSuccess(sender, nam);
 						
-						
-						serverlistener.store();
-						
-						
+						// TODO: Store here
+						storageManager.storeZones(zoneManager);
+						storageManager.storeDiscoveries(playerManager);
+						storageManager.storeEnergy(energyManager);
 					} else {
 						MessageDispatcher.createWarpFailure(sender, nam);
 					}
@@ -126,12 +158,13 @@ public class PreVisit extends JavaPlugin {
 					
 					// There was already a check for at least one argument
 					String nam = compileArgs(args,0);
-					if ( serverlistener.createWarp(( (Player)sender ).getLocation(), nam) ) {
+					if ( zoneManager.createZone(Position.convertPosition(( (Player)sender ).getLocation() ), nam) ) {
 						MessageDispatcher.createPublicWarpSuccess(sender, nam);
 						
-						
-						serverlistener.store();
-						
+						//TODO: Store here
+						storageManager.storeZones(zoneManager);
+						storageManager.storeDiscoveries(playerManager);
+						storageManager.storeEnergy(energyManager);
 					} else {
 						MessageDispatcher.createPublicWarpFailure(sender, nam);
 					}
@@ -147,13 +180,15 @@ public class PreVisit extends JavaPlugin {
 			if( sender.hasPermission("previsit.dvwarp") ) {
 				String nam = compileArgs(args,0);
 
-				if( serverlistener.deleteWarp(nam) ) {
+				if( zoneManager.deleteZone(nam) ) {
+					playerManager.removeZone(nam);
+					
 					MessageDispatcher.deleteWarpSuccess(sender, nam);
 					
-					
-					serverlistener.store();
-					
-					
+					//TODO: Store Here					
+					storageManager.storeZones(zoneManager);
+					storageManager.storeDiscoveries(playerManager);
+					storageManager.storeEnergy(energyManager);
 				} else {
 					MessageDispatcher.deleteWarpFailure(sender, nam);
 				}
@@ -173,56 +208,51 @@ public class PreVisit extends JavaPlugin {
 	 * @param warpName
 	 * @return
 	 */
-	public boolean initiateFt(Player player, String warpName) {
-		ServerPL.checkEnergy(player);
-		if ( ! serverlistener.doesWarpExist(warpName)) {
+	public boolean fastTravel(Player player, String warpName) {
+		if ( ! zoneManager.doesZoneExist(warpName)) {
+			// Accessibility.FAIL_NOT_FOUND;
 			MessageDispatcher.warpNotFound(player, warpName);
 			return false;
 		}
 		
-		Zone zone = serverlistener.getZoneByName(warpName);
-		
-		boolean visited = zone.hasVisited(player);
-		
-		boolean publicZone = zone.isPublic();
-		boolean playerAllWarps = player.hasPermission("previsit.allwarps");
-		
-		// TODO: Consider incorporating into visited check, because ops should not need energy anyway
-		if (playerAllWarps) {	// Ops only
-			MessageDispatcher.teleportAdminSuccess(player, warpName);
-			player.teleport(zone.getLocation());
-			return true;
-		}
-		
-		if (! serverlistener.teleportLocationOkay(player, zone)) {
+		Zone zone = zoneManager.getZoneByName(warpName);
+		Accessibility access = teleportManager.getAccessibility(player, zone);
+
+		switch (access) {
+		case FAIL_ENERGY_LEVEL:
+			MessageDispatcher.teleportFailEnergy(player, warpName, energyManager.getRequiredEnergy(player.getLocation(), zone), energyManager.getEnergy(player));
+			break;
+		case FAIL_NOT_VISITED:
+			MessageDispatcher.teleportFailNotVisited(player, warpName);
+			break;
+		case FAIL_WORLD_CHANGE:
 			MessageDispatcher.teleportFailWorldChange(player, warpName);
-			return false;
-		}
-		
-		if ( ! serverlistener.playerEnergyRequirement(player, zone)) {
-			MessageDispatcher.teleportFailEnergy(player, warpName, 0, 0);
-			return false;
-		}
-		
-		// Zone is not public, and player has not visited
-		if ( ! publicZone && !visited) {	// Both false
-			MessageDispatcher.teleportFailNotFound(player, warpName);
-			return false;
-		}
-		// One is true
-		if (publicZone) {
+			break;
+		case SUCCEED_ADMIN:
+			MessageDispatcher.teleportAdminSuccess(player, warpName);
+			break;
+		case SUCCEED_PUBLIC:
 			MessageDispatcher.teleportPublicSuccess(player, warpName);
-		} else {
+			break;
+		case SUCCEED_VISITED:
 			MessageDispatcher.teleportVisitSuccess(player, warpName);
+			break;
+		default:
+			System.err.println("[PVT]: Error occurred when checking zone accessibility");
+			break;
 		}
-		player.teleport(zone.getLocation());
-		return true;
-		//return serverlistener.requestTeleport(player, warpName);
+		if (access.getResult()) {
+			Position p = zoneManager.getZoneByName(warpName).getPosition();
+			//player.teleport(zoneManager.getZoneByName(warpName).getLocation());
+			player.teleport(new Location(this.getServer().getWorld(p.getWorld()), p.getX(), p.getY(), p.getZ(), p.getYaw(), p.getPitch()));
+			
+		}
+		return access.getResult();
 	}
 	
 	private boolean onCommandWarps(Player play, String WarpName) {
 		if (WarpName == null) {
-			WarpList list = serverlistener.getWarps(play);
+			WarpList list = getWarps(play);
 			
 			if (list.warpNames.length == 0) {
 				MessageDispatcher.warpsNoneAvailable(play);
@@ -231,13 +261,18 @@ public class PreVisit extends JavaPlugin {
 			}
 			return true;
 		} 
-		if (!serverlistener.doesWarpExist(WarpName)) {
-			MessageDispatcher.warpNotFound(play, WarpName);
-		}
-		int requiredEnergy = serverlistener.getRequiredEnergy(play,WarpName);
 		
-		MessageDispatcher.energyRequiredToTeleport(play, WarpName, requiredEnergy);
-		return true;
+		Zone warp = zoneManager.getZoneByName(WarpName);
+		
+		if ( warp == null) {
+			MessageDispatcher.warpNotFound(play, WarpName);
+			return true;
+		} else {
+			
+			int requiredEnergy = energyManager.getRequiredEnergy(play.getLocation(), warp);
+			MessageDispatcher.energyRequiredToTeleport(play, WarpName, requiredEnergy);
+			return true;
+		}
 	}
 	
 	private String compileArgs(String[] args, int startLocation) {
@@ -249,6 +284,19 @@ public class PreVisit extends JavaPlugin {
 		return result;
 	}
 	
-	
+	private WarpList getWarps(Player player){
 
+		String[] warpNames = new String[zoneManager.size()];
+		boolean[] accessibleWarps = new boolean[zoneManager.size()];
+		Iterator<Zone> iter = zoneManager.getIterator();
+		Zone zon = null;
+		int i = 0;
+		while ( iter.hasNext() ) {
+			zon = iter.next();
+			warpNames[i] = zon.getName();
+			accessibleWarps[i] = teleportManager.getAccessibility(player, zon).getResult();
+			i += 1;
+		}
+		return new WarpList(warpNames, accessibleWarps);
+	}
 }
