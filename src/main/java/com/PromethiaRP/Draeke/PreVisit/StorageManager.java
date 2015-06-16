@@ -63,7 +63,7 @@ public class StorageManager {
 		
 		checkFolder(dataFolder);
 		
-		String path = dataFolder.getPath() + File.pathSeparator;
+		String path = dataFolder.getPath() + File.separator;
 		zoneFile = new File(path + ZONE_FILE_NAME);
 		energyFile = new File(path + ENERGY_FILE_NAME);
 		discoveriesFile = new File(path + DISCOVERED_FILE_NAME);
@@ -105,7 +105,6 @@ public class StorageManager {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		
 		return builder.toString();
 	}
 	

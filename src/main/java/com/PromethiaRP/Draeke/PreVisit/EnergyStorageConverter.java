@@ -11,7 +11,7 @@ public class EnergyStorageConverter {
 			+ "#    PreVisitedTeleport    #\n"
 			+ "#     Energy Data File     #\n"
 			+ "#       Version: 1.0       #\n"
-			+ "############################\n";
+			+ "############################";
 	private final static String ENERGY_IDENTIFIER = ":";
 	
 	public static String encodeEnergy(EnergyManager energyManager) {
@@ -19,11 +19,12 @@ public class EnergyStorageConverter {
 		Iterator<UUID> iterator = energyManager.getIterator();
 		UUID uid;
 		while (iterator.hasNext()) {
+			builder.append("\n");
 			uid = iterator.next();
 			builder.append(uid.toString());
 			builder.append(ENERGY_IDENTIFIER);
 			builder.append(energyManager.getEnergy(uid));
-			builder.append("\n");
+
 		}
 		return builder.toString();
 	}

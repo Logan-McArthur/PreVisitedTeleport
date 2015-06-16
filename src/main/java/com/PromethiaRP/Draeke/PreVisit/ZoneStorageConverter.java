@@ -46,8 +46,8 @@ public class ZoneStorageConverter {
 		ZoneManager manager = new ZoneManager();
 		Scanner broadPhase = new Scanner(data);
 		String line;
-		while (broadPhase.hasNext()) {
-			line = broadPhase.next();
+		while (broadPhase.hasNextLine()) {
+			line = broadPhase.nextLine();
 			if (line.startsWith("#")) {
 				continue;
 			}

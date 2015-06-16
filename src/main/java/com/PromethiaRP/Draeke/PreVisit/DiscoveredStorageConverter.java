@@ -10,7 +10,7 @@ public class DiscoveredStorageConverter {
 			+ "#    PreVisitedTeleport    #\n"
 			+ "#   Discovered Data File   #\n"
 			+ "#       Version: 1.0       #\n"
-			+ "############################\n";
+			+ "############################";
 	
 	
 	private final static String DISCOVERED_IDENTIFIER = ":";
@@ -21,6 +21,7 @@ public class DiscoveredStorageConverter {
 		
 		UUID uid;
 		while (iterator.hasNext()) {
+			builder.append("\n");
 			uid = iterator.next();
 			builder.append(uid);
 			builder.append(DISCOVERED_IDENTIFIER);
@@ -32,7 +33,7 @@ public class DiscoveredStorageConverter {
 				builder.append(DISCOVERED_SEPARATOR);
 				builder.append(iter.next());
 			}
-			builder.append("\n");
+			
 		}
 		
 		return builder.toString();
