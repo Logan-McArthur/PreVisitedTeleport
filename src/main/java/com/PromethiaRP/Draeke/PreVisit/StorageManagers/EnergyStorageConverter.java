@@ -1,8 +1,10 @@
-package com.PromethiaRP.Draeke.PreVisit;
+package com.PromethiaRP.Draeke.PreVisit.StorageManagers;
 
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.UUID;
+
+import com.PromethiaRP.Draeke.PreVisit.DataManagers.EnergyManager;
 
 public class EnergyStorageConverter {
 

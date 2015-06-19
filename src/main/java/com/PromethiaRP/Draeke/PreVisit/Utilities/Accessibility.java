@@ -1,4 +1,4 @@
-package com.PromethiaRP.Draeke.PreVisit;
+package com.PromethiaRP.Draeke.PreVisit.Utilities;
 
 public enum Accessibility {
 FAIL_NOT_FOUND(false),

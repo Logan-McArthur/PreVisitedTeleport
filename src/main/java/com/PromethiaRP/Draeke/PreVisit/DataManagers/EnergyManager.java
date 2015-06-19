@@ -1,4 +1,4 @@
-package com.PromethiaRP.Draeke.PreVisit;
+package com.PromethiaRP.Draeke.PreVisit.DataManagers;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -8,6 +8,9 @@ import java.util.UUID;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+
+import com.PromethiaRP.Draeke.PreVisit.Data.Position;
+import com.PromethiaRP.Draeke.PreVisit.Data.Zone;
 
 public class EnergyManager{
 
@@ -40,9 +43,6 @@ public class EnergyManager{
 	 */
 	public void updateEnergies(){
 		long value = energyValue();
-//		for(String name: energies.keySet()){
-//			energies.put(name,new Integer((int)(energies.get(name).intValue()+(value * (plugin.getServer().getPlayer(name)!=null? .125:1)))));
-//		}
 		for(UUID uid: energyMap.keySet()) {
 			energyMap.put(uid,new Integer((int)(energyMap.get(uid).intValue()+(value * (1)))));
 		}
@@ -92,19 +92,20 @@ public class EnergyManager{
 	}
 	
 	public int getEnergy(UUID uid) {
-		checkEnergy(uid);
+		trackPlayer(uid);
 		if (energyMap.get(uid) == null) {
 			System.out.println("Error Error, the result from get(player) is null!");
 		}
 		return energyMap.get(uid).intValue();
 	}
 	
-	private void checkEnergy(UUID uid) {
-		if (energyMap.get(uid) == null) {
+	public void trackPlayer(UUID uid) {
+		if (!energyMap.containsKey(uid)) {
 			energyMap.put(uid, new Integer(STARTING_ENERGY));
 		}
 	}
-	public Map<UUID, Integer> getEnergyMap() {
-		return this.energyMap;
-	}
+	
+//	public Map<UUID, Integer> getEnergyMap() {
+//		return this.energyMap;
+//	}
 }

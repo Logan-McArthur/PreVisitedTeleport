@@ -1,4 +1,4 @@
-package com.PromethiaRP.Draeke.PreVisit;
+package com.PromethiaRP.Draeke.PreVisit.Data;
 
 import org.bukkit.Location;
 

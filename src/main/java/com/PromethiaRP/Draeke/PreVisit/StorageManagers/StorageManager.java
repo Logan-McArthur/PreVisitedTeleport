@@ -1,19 +1,15 @@
-package com.PromethiaRP.Draeke.PreVisit;
+package com.PromethiaRP.Draeke.PreVisit.StorageManagers;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.UUID;
 
-import org.bukkit.Location;
+import com.PromethiaRP.Draeke.PreVisit.DataManagers.EnergyManager;
+import com.PromethiaRP.Draeke.PreVisit.DataManagers.PlayerManager;
+import com.PromethiaRP.Draeke.PreVisit.DataManagers.ZoneManager;
 
 public class StorageManager {
 	
@@ -121,32 +117,7 @@ public class StorageManager {
 			e.printStackTrace();
 		}
 	}
-	
-//	private final String DISCOVERED_IDENTIFIER = ":";
-//	private final String DISCOVERED_SEPARATOR = "&";
-//	public void storeDiscovered(File storageFile, Map<UUID, Set<String>> discoveries) {
-//		StringBuilder builder = new StringBuilder(DISCOVERED_STORAGE_PREFIX);
-//		
-//		for (UUID uid : discoveries.keySet()) {
-//			builder.append(uid);
-//			builder.append(DISCOVERED_IDENTIFIER);
-//			Iterator<String> iter = discoveries.get(uid).iterator();
-//			if (iter.hasNext()) {
-//				builder.append(iter.next());
-//			}
-//			while(iter.hasNext()) {
-//				builder.append(DISCOVERED_SEPARATOR);
-//				builder.append(iter.next());
-//			}
-//			builder.append("\n");
-//		}
-//		
-//		writeToFile(storageFile, builder.toString());
-//	}
-	
-	
-	
-	
+
 //	public static final String ENERGY_HEADER = 		"========Energies========";
 //	public static final String ENERGY_UUID_HEADER = "========UniqueEnergies========";
 //	public static final String WARP_HEADER = 		"========Warps========";

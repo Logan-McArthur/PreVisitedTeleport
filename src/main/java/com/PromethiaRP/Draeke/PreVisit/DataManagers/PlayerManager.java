@@ -1,4 +1,4 @@
-package com.PromethiaRP.Draeke.PreVisit;
+package com.PromethiaRP.Draeke.PreVisit.DataManagers;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,13 +30,13 @@ public class PlayerManager {
 		return this.hasVisited(play.getUniqueId(), zoneName);
 	}
 	public boolean hasVisited(UUID uid, String zoneName) {
-		this.checkPlayer(uid);
+		this.trackPlayer(uid);
 		return visitedMap.get(uid).contains(zoneName);
 	}
 	
 	
 	public boolean addZoneToPlayer(UUID uid, String zoneName) {
-		this.checkPlayer(uid);
+		this.trackPlayer(uid);
 		Set<String> visited = visitedMap.get(uid);
 		if (visited.contains(zoneName)) {
 			return false;
@@ -53,7 +53,7 @@ public class PlayerManager {
 		this.addZonesToPlayer(play.getUniqueId(), zones);
 	}
 	public void addZonesToPlayer(UUID uid, Collection<String> zones) {
-		this.checkPlayer(uid);
+		this.trackPlayer(uid);
 		visitedMap.get(uid).addAll(zones);
 	}
 	
@@ -62,14 +62,14 @@ public class PlayerManager {
 		return this.getVisitedZones(play.getUniqueId());
 	}
 	public Set<String> getVisitedZones(UUID uid) {
-		this.checkPlayer(uid);
+		this.trackPlayer(uid);
 		return visitedMap.get(uid);
 	}
 	
 	
-	public Set<UUID> getTrackedPlayers() {
-		return visitedMap.keySet();
-	}
+//	public Set<UUID> getTrackedPlayers() {
+//		return visitedMap.keySet();
+//	}
 	
 	
 	public boolean isTrackingPlayer(Player play) {
@@ -86,7 +86,7 @@ public class PlayerManager {
 		}
 	}
 	
-	private void checkPlayer(UUID uid) {
+	public void trackPlayer(UUID uid) {
 		if (!visitedMap.containsKey(uid)) {
 			visitedMap.put(uid, new HashSet<String>());
 		}

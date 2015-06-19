@@ -31,22 +31,30 @@ permissions:
    previsit.combatwait: false
    previsit.allwarps: true
    previsit.giveenergy: true
+   previsit.ft: true
+   previsit.worldchange: true
   default: op
  previsit.svwarp:
-  description: Allows you to create a warp.
+  description: Players can create warps if set.
   default: op
  previsit.dvwarp:
-  description: Allows you to delete a warp.
+  description: Players can delete warps if set.
   default: op
  previsit.useenergy:
-  description: Whether or not a Player must have energy to teleport.
+  description: Players must use energy to fast travel if set.
   default: true
  previsit.combatwait:
-  description: Whether or not a Player must exit combat to teleport.
+  description: Players must exit combat to fast travel if set.
   default: true
  previsit.allwarps:
-  description: Whether or not a player can visit any warp.
+  description: Players can fast travel unconditionally if set.
   default: false
  previsit.giveenergy:
-  description: Whether or not the player can give others energy.
+  description: Players can give energy to others if set.
+  default: op
+ previsit.ft:
+  description: Players can fast travel if set.
+  default: true
+ previsit.worldchange:
+  description: Players can travel across worlds if set.
   default: op

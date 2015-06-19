@@ -1,4 +1,4 @@
-package com.PromethiaRP.Draeke.PreVisit;
+package com.PromethiaRP.Draeke.PreVisit.Utilities;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -98,5 +98,9 @@ public class MessageDispatcher {
 	}
 	public static void discoverRegularWarp(CommandSender sender, String warpName) {
 		sender.sendMessage(ChatColor.GREEN + "You have discovered the warp " + ChatColor.GOLD + warpName + ChatColor.GREEN + ".");
+	}
+	
+	public static void commandFailPermission(CommandSender sender, String command) {
+		sender.sendMessage(ChatColor.RED + "You do not have access to the command " + ChatColor.GOLD + command + ChatColor.RED + ".");
 	}
 }

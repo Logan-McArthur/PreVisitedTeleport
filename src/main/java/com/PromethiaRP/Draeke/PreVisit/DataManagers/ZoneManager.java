@@ -1,10 +1,13 @@
-package com.PromethiaRP.Draeke.PreVisit;
+package com.PromethiaRP.Draeke.PreVisit.DataManagers;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import org.bukkit.Location;
+
+import com.PromethiaRP.Draeke.PreVisit.Data.Position;
+import com.PromethiaRP.Draeke.PreVisit.Data.Zone;
 
 public class ZoneManager {
 
