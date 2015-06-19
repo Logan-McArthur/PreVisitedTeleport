@@ -72,11 +72,11 @@ public class RequirementManager {
 		if (effective != null) {
 			boolean result = effective.willAllow(player, zone);
 			
-			if (result) {
-				effective.sendAcceptMessage(player, zone);
-			} else {
-				effective.sendDenyMessage(player, zone);
-			}
+//			if (result) {
+//				effective.sendAcceptMessage(player, zone);
+//			} else {
+//				effective.sendDenyMessage(player, zone);
+//			}
 			
 			return result;
 		}

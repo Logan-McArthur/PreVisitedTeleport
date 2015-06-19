@@ -91,6 +91,9 @@ public class MessageDispatcher {
 	public static void teleportFailNotVisited(CommandSender sender, String warpName) {
 		sender.sendMessage(ChatColor.RED + "You must discover the warp before you can teleport there.");
 	}
+	public static void teleportFailNoReason(CommandSender sender, String warpName) {
+		sender.sendMessage(ChatColor.RED + "You are unable to travel to the warp.");
+	}
 	
 	
 	public static void discoverPublicWarp(CommandSender sender, String warpName) {

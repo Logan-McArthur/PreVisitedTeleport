@@ -10,6 +10,7 @@ import com.PromethiaRP.Draeke.PreVisit.DataManagers.PlayerManager;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.ZoneManager;
 import com.PromethiaRP.Draeke.PreVisit.Requirements.Requirement;
 
+@Deprecated
 public class TeleportationManager {
 	private ZoneManager zoneManager;
 	private PlayerManager playerManager;
