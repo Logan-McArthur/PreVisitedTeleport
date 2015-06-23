@@ -3,8 +3,6 @@ package com.PromethiaRP.Draeke.PreVisit;
 import java.io.File;
 import java.util.logging.Logger;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.World;
@@ -72,22 +70,10 @@ public class PreVisit extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(playerListener, this);
 	}
 	
-
-	
-	@Override
-	public void onDisable(){
-
-	}
-	
 	public static void log(String info){
 		logger.info("[PVT]: " + info);
 	}
 	
-	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-		
-		return false;
-	}
 
 	public World getWorld(String worldName) {
 		return getServer().getWorld(worldName);
