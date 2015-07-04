@@ -35,7 +35,6 @@ public class MessageDispatcher {
 	public static void warpsList(CommandSender sender, WarpList list) {
 		sender.sendMessage(ChatColor.DARK_GREEN+"Here is a list of warps for you.");
 		sender.sendMessage("The ones listed in red are too far from you for your current energy level.");
-//		warps = warps + (isAccessible(player,zon) ? ChatColor.GOLD:ChatColor.RED)+zon.getName()+ChatColor.WHITE+", ";
 		StringBuilder builder = new StringBuilder();
 		if (list.accessibleWarps[0]) {
 			builder.append(ChatColor.GOLD);
@@ -82,6 +81,7 @@ public class MessageDispatcher {
 	public static void teleportVisitSuccess(CommandSender sender, String warpName) {
 		sender.sendMessage(ChatColor.GREEN + "You are teleporting to the warp " + ChatColor.GOLD + warpName + ChatColor.GREEN + ".");
 	}
+	
 	public static void teleportFailEnergy(CommandSender sender, String warpName, int requiredEnergy, int energyLevel) {
 		sender.sendMessage(ChatColor.RED + "You do not have enough energy to teleport to " + ChatColor.GOLD + warpName + ChatColor.RED + ".");
 	}
@@ -94,7 +94,9 @@ public class MessageDispatcher {
 	public static void teleportFailNoReason(CommandSender sender, String warpName) {
 		sender.sendMessage(ChatColor.RED + "You are unable to travel to the warp.");
 	}
-	
+	public static void teleportFailInCombat(CommandSender sender, String warpName, long remainingTimeMS) {
+		sender.sendMessage(ChatColor.RED + "You can not fast travel while in combat, avoid fighting for " + (remainingTimeMS / 1000) + " seconds.");
+	}
 	
 	public static void discoverPublicWarp(CommandSender sender, String warpName) {
 		sender.sendMessage(ChatColor.GREEN + "You have discovered the public warp " + ChatColor.GOLD + warpName + ChatColor.GREEN + ".");

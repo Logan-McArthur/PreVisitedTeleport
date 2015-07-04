@@ -1,25 +1,18 @@
 package com.PromethiaRP.Draeke.PreVisit.Utilities;
 
-import java.util.Set;
-
 import org.bukkit.entity.Player;
 
 import com.PromethiaRP.Draeke.PreVisit.Data.Zone;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.EnergyManager;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.PlayerManager;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.ZoneManager;
-import com.PromethiaRP.Draeke.PreVisit.Requirements.Requirement;
 
 @Deprecated
 public class TeleportationManager {
-	private ZoneManager zoneManager;
 	private PlayerManager playerManager;
 	private EnergyManager energyManager;
 	
-	private Set<Requirement> overrides;	// 
-	private Set<Requirement> checks;
 	public TeleportationManager(ZoneManager zones, PlayerManager players, EnergyManager energies) {
-		this.zoneManager = zones;
 		this.playerManager = players;
 		this.energyManager = energies;
 	}

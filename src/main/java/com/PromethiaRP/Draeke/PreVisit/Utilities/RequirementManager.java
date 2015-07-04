@@ -14,15 +14,17 @@ public class RequirementManager {
 	private PlayerManager playerManager;
 	private ZoneManager zoneManager;
 	private EnergyManager energyManager;
+	private CombatManager combatManager;
 	
 	private Set<Requirement> overrides;
 	private Set<Requirement> needs;
 	private Set<Requirement> checks;
 	
-	public RequirementManager(PlayerManager playerManager, ZoneManager zoneManager, EnergyManager energyManager) {
+	public RequirementManager(PlayerManager playerManager, ZoneManager zoneManager, EnergyManager energyManager, CombatManager combat) {
 		this.playerManager = playerManager;
 		this.zoneManager = zoneManager;
 		this.energyManager = energyManager;
+		this.combatManager = combat;
 		
 		overrides = new HashSet<Requirement>();
 		needs = new HashSet<Requirement>();
@@ -36,7 +38,8 @@ public class RequirementManager {
 		
 		needs.add(new EnergyCheck(energyManager));
 		needs.add(new WorldCheck());
-
+		needs.add(new CombatCheck(combatManager));
+		
 		checks.add(new PublicCheck());
 		checks.add(new VisitedCheck(playerManager));
 		
@@ -70,15 +73,7 @@ public class RequirementManager {
 		
 		Requirement effective = this.getEffectiveRequirement(player, zone);
 		if (effective != null) {
-			boolean result = effective.willAllow(player, zone);
-			
-//			if (result) {
-//				effective.sendAcceptMessage(player, zone);
-//			} else {
-//				effective.sendDenyMessage(player, zone);
-//			}
-			
-			return result;
+			return effective.willAllow(player, zone);
 		}
 		
 		return false;

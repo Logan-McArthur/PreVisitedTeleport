@@ -12,6 +12,7 @@ import com.PromethiaRP.Draeke.PreVisit.Commands.DeleteWarpCommand;
 import com.PromethiaRP.Draeke.PreVisit.Commands.EnergyCommand;
 import com.PromethiaRP.Draeke.PreVisit.Commands.FastTravelCommand;
 import com.PromethiaRP.Draeke.PreVisit.Commands.WarpsCommand;
+import com.PromethiaRP.Draeke.PreVisit.DataManagers.CombatManager;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.EnergyManager;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.PlayerManager;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.ZoneManager;
@@ -34,6 +35,8 @@ public class PreVisit extends JavaPlugin implements Listener {
 	private EnergyManager energyManager;
 	private PlayerManager playerManager;
 	private StorageManager storageManager;
+	private CombatManager combatManager;
+	
 	private RequirementManager requirementManager;
 	
 	private WarpsCommand warps;
@@ -42,8 +45,8 @@ public class PreVisit extends JavaPlugin implements Listener {
 	private CreateWarpCommand createWarp;
 	private DeleteWarpCommand deleteWarp;
 	
-	private PlayerMovementListener playerListener;
-	
+	private PlayerMovementListener movementListener;
+	private PlayerCombatListener combatListener;
 	@Override
 	public void onEnable() {
 		
@@ -51,7 +54,10 @@ public class PreVisit extends JavaPlugin implements Listener {
 		zoneManager = storageManager.loadZones();
 		energyManager = storageManager.loadEnergy();
 		playerManager = storageManager.loadDiscoveries();
-
+		combatManager = new CombatManager();
+		
+		requirementManager = new RequirementManager(playerManager, zoneManager, energyManager, combatManager);
+		
 		warps = new WarpsCommand(zoneManager, energyManager, requirementManager);
 		fastTravel = new FastTravelCommand(this, zoneManager, requirementManager);
 		energy = new EnergyCommand(energyManager);
@@ -65,9 +71,11 @@ public class PreVisit extends JavaPlugin implements Listener {
 		this.getCommand("svwarp").setExecutor(createWarp);
 		this.getCommand("dvwarp").setExecutor(deleteWarp);
 		
-		playerListener = new PlayerMovementListener(playerManager, energyManager, zoneManager);
+		movementListener = new PlayerMovementListener(playerManager, energyManager, zoneManager);
+		combatListener = new PlayerCombatListener(combatManager);
 		
-		getServer().getPluginManager().registerEvents(playerListener, this);
+		getServer().getPluginManager().registerEvents(movementListener, this);
+		getServer().getPluginManager().registerEvents(combatListener, this);
 	}
 	
 	public static void log(String info){
