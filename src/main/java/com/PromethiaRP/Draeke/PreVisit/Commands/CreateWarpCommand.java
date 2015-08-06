@@ -10,17 +10,19 @@ import com.PromethiaRP.Draeke.PreVisit.PreVisitPermissions;
 import com.PromethiaRP.Draeke.PreVisit.Data.Position;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.ZoneManager;
 import com.PromethiaRP.Draeke.PreVisit.Utilities.MessageDispatcher;
+import com.PromethiaRP.Draeke.PreVisit.Utilities.Wire;
 
+@Wire
 public class CreateWarpCommand implements CommandExecutor {
 
 	private ZoneManager zoneManager;
 	private PreVisit plugin;
 	
 	
-	public CreateWarpCommand(PreVisit plugin, ZoneManager zone) {
-		zoneManager = zone;
-		this.plugin = plugin;
-	}
+//	public CreateWarpCommand(PreVisit plugin, ZoneManager zone) {
+//		zoneManager = zone;
+//		this.plugin = plugin;
+//	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,

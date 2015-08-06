@@ -10,7 +10,9 @@ import com.PromethiaRP.Draeke.PreVisit.DataManagers.EnergyManager;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.PlayerManager;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.ZoneManager;
 import com.PromethiaRP.Draeke.PreVisit.Utilities.MessageDispatcher;
+import com.PromethiaRP.Draeke.PreVisit.Utilities.Wire;
 
+@Wire
 public class PlayerMovementListener implements Listener {
 
 	
@@ -18,11 +20,11 @@ public class PlayerMovementListener implements Listener {
 	private EnergyManager energyManager;
 	private ZoneManager zoneManager;
 	
-	public PlayerMovementListener(PlayerManager player, EnergyManager energy, ZoneManager zone) {
-		this.playerManager = player;
-		this.energyManager = energy;
-		this.zoneManager = zone;
-	}
+//	public PlayerMovementListener(PlayerManager player, EnergyManager energy, ZoneManager zone) {
+//		this.playerManager = player;
+//		this.energyManager = energy;
+//		this.zoneManager = zone;
+//	}
 	
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {

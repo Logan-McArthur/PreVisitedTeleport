@@ -14,18 +14,20 @@ import com.PromethiaRP.Draeke.PreVisit.DataManagers.ZoneManager;
 import com.PromethiaRP.Draeke.PreVisit.Utilities.MessageDispatcher;
 import com.PromethiaRP.Draeke.PreVisit.Utilities.RequirementManager;
 import com.PromethiaRP.Draeke.PreVisit.Utilities.WarpList;
+import com.PromethiaRP.Draeke.PreVisit.Utilities.Wire;
 
+@Wire
 public class WarpsCommand implements CommandExecutor{
 
 	private ZoneManager zoneManager;
 	private EnergyManager energyManager;
 	private RequirementManager requirementManager;
 	
-	public WarpsCommand(ZoneManager zone, EnergyManager energy, RequirementManager requirement) {
-		this.zoneManager = zone;
-		this.energyManager = energy;
-		this.requirementManager = requirement;
-	}
+//	public WarpsCommand(ZoneManager zone, EnergyManager energy, RequirementManager requirement) {
+//		this.zoneManager = zone;
+//		this.energyManager = energy;
+//		this.requirementManager = requirement;
+//	}
 	
 	public void onCommandWarpsInfo(Player play, String warpName) {
 

@@ -10,7 +10,9 @@ import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
-public class PlayerManager {
+import com.PromethiaRP.Draeke.PreVisit.Utilities.Provider;
+
+public class PlayerManager implements Provider {
 
 	private Map<UUID, HashSet<String>> visitedMap;
 	

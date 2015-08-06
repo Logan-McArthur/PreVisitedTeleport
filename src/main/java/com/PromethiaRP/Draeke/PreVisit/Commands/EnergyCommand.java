@@ -8,14 +8,16 @@ import org.bukkit.entity.Player;
 import com.PromethiaRP.Draeke.PreVisit.PreVisitPermissions;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.EnergyManager;
 import com.PromethiaRP.Draeke.PreVisit.Utilities.MessageDispatcher;
+import com.PromethiaRP.Draeke.PreVisit.Utilities.Wire;
 
+@Wire
 public class EnergyCommand implements CommandExecutor{
 
 	private EnergyManager energyManager;
 	
-	public EnergyCommand(EnergyManager energy) {
-		this.energyManager = energy;
-	}
+//	public EnergyCommand(EnergyManager energy) {
+//		this.energyManager = energy;
+//	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,

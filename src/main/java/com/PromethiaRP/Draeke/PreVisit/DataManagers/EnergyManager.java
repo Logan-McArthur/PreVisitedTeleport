@@ -11,8 +11,9 @@ import org.bukkit.entity.Player;
 
 import com.PromethiaRP.Draeke.PreVisit.Data.Position;
 import com.PromethiaRP.Draeke.PreVisit.Data.Zone;
+import com.PromethiaRP.Draeke.PreVisit.Utilities.Provider;
 
-public class EnergyManager{
+public class EnergyManager implements Provider {
 
 	private Map<UUID, Integer> energyMap;
 	

@@ -14,18 +14,20 @@ import com.PromethiaRP.Draeke.PreVisit.DataManagers.ZoneManager;
 import com.PromethiaRP.Draeke.PreVisit.Requirements.Requirement;
 import com.PromethiaRP.Draeke.PreVisit.Utilities.MessageDispatcher;
 import com.PromethiaRP.Draeke.PreVisit.Utilities.RequirementManager;
+import com.PromethiaRP.Draeke.PreVisit.Utilities.Wire;
 
+@Wire
 public class FastTravelCommand implements CommandExecutor {
 
 	private ZoneManager zoneManager;
 	private RequirementManager requirementManager;
 	private PreVisit plugin;
 	
-	public FastTravelCommand(PreVisit plugin, ZoneManager zone, RequirementManager requirement) {
-		this.zoneManager = zone;
-		this.requirementManager = requirement;
-		this.plugin = plugin;
-	}
+//	public FastTravelCommand(PreVisit plugin, ZoneManager zone, RequirementManager requirement) {
+//		this.zoneManager = zone;
+//		this.requirementManager = requirement;
+//		this.plugin = plugin;
+//	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,

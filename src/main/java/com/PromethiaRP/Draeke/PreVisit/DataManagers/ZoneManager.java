@@ -8,8 +8,9 @@ import org.bukkit.Location;
 
 import com.PromethiaRP.Draeke.PreVisit.Data.Position;
 import com.PromethiaRP.Draeke.PreVisit.Data.Zone;
+import com.PromethiaRP.Draeke.PreVisit.Utilities.Provider;
 
-public class ZoneManager {
+public class ZoneManager implements Provider {
 
 	private Map<String, Zone> zoneMap;
 	

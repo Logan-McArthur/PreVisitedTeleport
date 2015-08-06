@@ -9,18 +9,20 @@ import com.PromethiaRP.Draeke.PreVisit.PreVisitPermissions;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.PlayerManager;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.ZoneManager;
 import com.PromethiaRP.Draeke.PreVisit.Utilities.MessageDispatcher;
+import com.PromethiaRP.Draeke.PreVisit.Utilities.Wire;
 
+@Wire
 public class DeleteWarpCommand implements CommandExecutor {
 
 	private ZoneManager zoneManager;
 	private PlayerManager playerManager;
 	private PreVisit plugin;
 	
-	public DeleteWarpCommand(PreVisit plugin, ZoneManager zone, PlayerManager player) {
-		zoneManager = zone;
-		playerManager = player;
-		this.plugin = plugin;
-	}
+//	public DeleteWarpCommand(PreVisit plugin, ZoneManager zone, PlayerManager player) {
+//		zoneManager = zone;
+//		playerManager = player;
+//		this.plugin = plugin;
+//	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,

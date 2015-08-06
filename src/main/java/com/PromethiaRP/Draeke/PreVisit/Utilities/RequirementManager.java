@@ -9,7 +9,7 @@ import com.PromethiaRP.Draeke.PreVisit.Data.Zone;
 import com.PromethiaRP.Draeke.PreVisit.DataManagers.*;
 import com.PromethiaRP.Draeke.PreVisit.Requirements.*;
 
-public class RequirementManager {
+public class RequirementManager implements Provider {
 
 	private PlayerManager playerManager;
 	private ZoneManager zoneManager;
@@ -20,20 +20,27 @@ public class RequirementManager {
 	private Set<Requirement> needs;
 	private Set<Requirement> checks;
 	
-	public RequirementManager(PlayerManager playerManager, ZoneManager zoneManager, EnergyManager energyManager, CombatManager combat) {
-		this.playerManager = playerManager;
-		this.zoneManager = zoneManager;
-		this.energyManager = energyManager;
-		this.combatManager = combat;
-		
+//	public RequirementManager(PlayerManager playerManager, ZoneManager zoneManager, EnergyManager energyManager, CombatManager combat) {
+//		this.playerManager = playerManager;
+//		this.zoneManager = zoneManager;
+//		this.energyManager = energyManager;
+//		this.combatManager = combat;
+//		
+//		overrides = new HashSet<Requirement>();
+//		needs = new HashSet<Requirement>();
+//		checks = new HashSet<Requirement>();
+//		
+//		constructRequirements();
+//	}
+	
+	public RequirementManager() {
 		overrides = new HashSet<Requirement>();
 		needs = new HashSet<Requirement>();
 		checks = new HashSet<Requirement>();
 		
-		constructRequirements();
 	}
 	
-	private void constructRequirements() {
+	public void constructRequirements() {
 		overrides.add(new AllWarpsOverride());
 		
 		needs.add(new EnergyCheck(energyManager));

@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class CombatManager {
+import com.PromethiaRP.Draeke.PreVisit.Utilities.Provider;
+
+public class CombatManager implements Provider {
 
 	private Map<UUID, Date> cooldownTimes;
 	
